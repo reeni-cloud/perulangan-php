@@ -1,0 +1,1869 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CBT Perulangan PHP — XI RPL</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Source+Sans+3:wght@400;600;700&family=Source+Serif+4:opsz,wght@8..60,700&display=swap" rel="stylesheet">
+<script>
+/* =====================================================================
+   PENGATURAN UJIAN — guru boleh mengubah bagian ini dengan Notepad
+   ===================================================================== */
+window.CBT_CONFIG = {
+  judul: 'Latihan Soal: Perulangan PHP',
+  mapel: 'Pemrograman Web',
+  sekolah: '',                                  // contoh: 'SMK Negeri ...'
+  kelasList: ['XI RPL'],
+  durasiMenit: 90,
+  token: 'LOOP46',                              // token yang dibacakan guru saat ujian dimulai
+  pinGuru: '4646',                              // PIN untuk membuka Mode Guru
+  kkm: 78,
+  tampilkanNilai: true,                         // false = siswa tidak melihat nilainya
+  acakSoal: true,                               // urutan soal diacak per siswa (di dalam tiap bagian)
+  acakOpsi: true,                               // urutan pilihan a–e diacak per siswa
+  bobot: { A: 2, B: 3, C: 5 }                   // 20×2 + 10×3 + 6×5 = 100
+};
+</script>
+<style>
+:root {
+  --navy: #1d2462; --navy-2: #28307a; --cyan: #0b7fa8; --amber: #f2b418;
+  --bg: #f4f6fb; --card: #ffffff; --panel: #eef3fc; --line: #d3ddf0; --text: #1a1f3d; --muted: #58617f;
+  --ok: #17865c; --ok-bg: #e3f5ec; --bad: #c73b3b; --bad-bg: #fdecec; --warn: #9a6400; --warn-bg: #fff3d6;
+  --code-bg: #111827; --code-line: #1f2a3d; --code-text: #e5e9f0;
+  --serif: "Source Serif 4", Cambria, Georgia, serif; --sans: "Source Sans 3", Calibri, "Segoe UI", system-ui, sans-serif; --mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+  box-sizing: border-box; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { --bg: #0c1030; --card: #151b44; --panel: #1b2250; --line: #2e3772; --text: #e6e9f7; --muted: #a3abd0; --cyan: #56c6ee; --ok: #4cd39a; --ok-bg: #11332a; --bad: #ff8a8a; --bad-bg: #3a1a26; --warn: #ffcf66; --warn-bg: #332a12; --code-bg: #0a0f1f; --code-line: #1a2238; color-scheme: dark; }
+}
+:root[data-theme="dark"] { --bg: #0c1030; --card: #151b44; --panel: #1b2250; --line: #2e3772; --text: #e6e9f7; --muted: #a3abd0; --cyan: #56c6ee; --ok: #4cd39a; --ok-bg: #11332a; --bad: #ff8a8a; --bad-bg: #3a1a26; --warn: #ffcf66; --warn-bg: #332a12; --code-bg: #0a0f1f; --code-line: #1a2238; color-scheme: dark; }
+*, *::before, *::after { box-sizing: inherit; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 17px; line-height: 1.5; -webkit-font-smoothing: antialiased; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+h1, h2, h3 { margin: 0; line-height: 1.2; }
+code { font-family: var(--mono); font-size: .88em; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 0 .3em; }
+.hide { display: none !important; }
+.btn { border: 0; border-radius: 9px; padding: 10px 18px; font-weight: 700; font-size: 16px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.btn-primary { background: var(--navy); color: #fff; }
+.btn-primary:hover { background: var(--navy-2); }
+.btn-amber { background: var(--amber); color: #1d2140; }
+.btn-line { background: var(--card); border: 1.5px solid var(--line); color: var(--text); }
+.btn-line:hover { border-color: var(--cyan); }
+.btn-danger { background: var(--bad); color: #fff; }
+.btn[disabled] { opacity: .5; cursor: not-allowed; }
+.link { background: none; border: 0; color: var(--cyan); font-weight: 600; text-decoration: underline; text-underline-offset: 3px; padding: 4px 0; }
+
+/* ---------- login ---------- */
+.login { min-height: 100vh; min-height: 100dvh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.login-side { background: var(--navy); color: #eef1fb; padding: 56px; display: flex; flex-direction: column; justify-content: space-between; gap: 32px; }
+.login-side .school { color: var(--amber); font-weight: 700; letter-spacing: .02em; }
+.login-side h1 { font-family: var(--serif); font-size: clamp(34px, 4vw, 52px); color: #fff; margin: 14px 0 12px; }
+.login-side p { color: #c9d0ee; margin: 0; font-size: 18px; }
+.facts { display: grid; grid-template-columns: repeat(3, auto); gap: 8px 36px; justify-content: start; }
+.facts b { font-family: var(--serif); font-size: 34px; color: #fff; display: block; line-height: 1.1; }
+.facts span { color: #c9d0ee; font-size: 15px; }
+.rules { background: rgba(255,255,255,.06); border-radius: 12px; padding: 18px 22px; font-size: 15.5px; color: #dfe4fa; }
+.rules ol { margin: 8px 0 0; padding-left: 20px; }
+.rules li { margin: 3px 0; }
+.login-form { display: flex; align-items: center; justify-content: center; padding: 40px 24px; }
+.form { width: 100%; max-width: 420px; display: flex; flex-direction: column; gap: 16px; }
+.form h2 { font-family: var(--serif); font-size: 30px; color: var(--navy); }
+:root[data-theme="dark"] .form h2 { color: #dfe4ff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .form h2 { color: #dfe4ff; } }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-weight: 700; font-size: 15px; }
+.field input, .field select { border: 1.5px solid var(--line); background: var(--card); border-radius: 9px; padding: 11px 13px; }
+.field input:focus, .field select:focus { outline: none; border-color: var(--cyan); box-shadow: 0 0 0 3px color-mix(in srgb, var(--cyan) 25%, transparent); }
+.row2 { display: grid; grid-template-columns: 1fr 120px; gap: 12px; }
+.err { color: var(--bad); font-weight: 600; font-size: 15px; min-height: 1.4em; }
+.form .btn-primary { padding: 13px; font-size: 17px; }
+.form-foot { display: flex; justify-content: space-between; align-items: center; font-size: 14.5px; color: var(--muted); }
+
+/* ---------- exam ---------- */
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--navy); color: #fff; }
+.topbar-in { max-width: 1320px; margin: 0 auto; padding: 10px 20px; display: flex; align-items: center; gap: 16px; }
+.topbar .title { font-weight: 700; font-size: 16px; }
+.topbar .who { color: #c9d0ee; font-size: 14.5px; }
+.topbar .sp { flex: 1; }
+.timer { font-family: var(--mono); font-weight: 600; font-size: 20px; background: rgba(255,255,255,.1); padding: 5px 14px; border-radius: 8px; font-variant-numeric: tabular-nums; }
+.timer.low { background: var(--amber); color: #1d2140; }
+.timer.crit { background: #e04848; color: #fff; }
+.btn-nav-toggle { display: none; background: rgba(255,255,255,.12); color: #fff; }
+.exam { max-width: 1320px; margin: 0 auto; padding: 20px; display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; align-items: start; }
+.qcard { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 26px 28px; display: flex; flex-direction: column; gap: 18px; min-width: 0; }
+.qhead { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.qnum { font-family: var(--serif); font-weight: 700; font-size: 26px; color: var(--navy); }
+:root[data-theme="dark"] .qnum { color: #dfe4ff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .qnum { color: #dfe4ff; } }
+.chip { font-size: 14px; font-weight: 700; padding: 3px 11px; border-radius: 99px; background: var(--panel); color: var(--cyan); }
+.chip.pts { color: var(--muted); font-weight: 600; }
+.qtext { font-size: 19px; margin: 0; }
+.codeblk { background: var(--code-bg); color: var(--code-text); border-radius: 10px; padding: 16px 18px; font-family: var(--mono); font-size: 15px; line-height: 1.65; white-space: pre; overflow-x: auto; margin: 0; user-select: none; -webkit-user-select: none; }
+.t-kw { color: #6cb6ff; } .t-var { color: #9ddcff; } .t-str { color: #f0a868; } .t-num { color: #b5d99c; } .t-com { color: #6a9955; font-style: italic; } .t-tag { color: #c792ea; } .t-fn { color: #e5d17d; }
+.opts { display: flex; flex-direction: column; gap: 10px; }
+.opt { display: flex; align-items: center; gap: 14px; text-align: left; background: var(--card); border: 1.5px solid var(--line); border-radius: 11px; padding: 12px 16px; font-size: 17.5px; }
+.opt:hover { border-color: var(--cyan); }
+.opt .ltr { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--line); display: grid; place-items: center; font-weight: 700; flex: none; text-transform: uppercase; }
+.opt[aria-checked="true"] { border-color: var(--navy); background: var(--panel); }
+.opt[aria-checked="true"] .ltr { background: var(--navy); border-color: var(--navy); color: #fff; }
+:root[data-theme="dark"] .opt[aria-checked="true"] { border-color: var(--amber); }
+:root[data-theme="dark"] .opt[aria-checked="true"] .ltr { background: var(--amber); border-color: var(--amber); color: #1d2140; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .opt[aria-checked="true"] { border-color: var(--amber); } :root:not([data-theme="light"]) .opt[aria-checked="true"] .ltr { background: var(--amber); border-color: var(--amber); color: #1d2140; } }
+.ans-area { display: flex; flex-direction: column; gap: 6px; }
+.ans-area label { font-weight: 700; }
+.ans-area textarea { border: 1.5px solid var(--line); background: var(--card); border-radius: 10px; padding: 12px 14px; font-family: var(--mono); font-size: 16px; resize: vertical; min-height: 64px; }
+.ans-area textarea:focus { outline: none; border-color: var(--cyan); }
+.ans-area small { color: var(--muted); font-size: 14.5px; }
+.lbl { font-weight: 700; font-size: 15px; color: var(--cyan); display: block; margin-bottom: 6px; }
+.outbox { background: var(--panel); border: 1px solid var(--line); border-radius: 9px; padding: 12px 14px; font-family: var(--mono); font-size: 14.5px; line-height: 1.6; white-space: pre; overflow-x: auto; margin: 0; }
+.reqs { margin: 0; padding-left: 20px; font-size: 16px; }
+.win { background: var(--code-bg); border-radius: 12px; overflow: hidden; }
+.win-top { display: flex; align-items: center; gap: 7px; padding: 10px 14px; border-bottom: 1px solid var(--code-line); }
+.win-top i { width: 11px; height: 11px; border-radius: 50%; display: block; }
+.win-top i:nth-child(1) { background: #ec5f55; } .win-top i:nth-child(2) { background: #f4bf3a; } .win-top i:nth-child(3) { background: #45c05a; }
+.win-top span { margin-left: 8px; color: #8b95b0; font-family: var(--mono); font-size: 13px; }
+.editor { display: grid; grid-template-columns: auto 1fr; height: 320px; }
+.gutter { font-family: var(--mono); font-size: 14.5px; line-height: 1.65; color: #5b6685; text-align: right; padding: 14px 10px 14px 14px; user-select: none; overflow: hidden; background: #0d1422; min-width: 44px; }
+.code-area { position: relative; overflow: hidden; }
+.code-area pre, .code-area textarea { position: absolute; inset: 0; margin: 0; border: 0; padding: 14px 16px; font-family: var(--mono); font-size: 14.5px; line-height: 1.65; white-space: pre; overflow: auto; tab-size: 2; font-variant-ligatures: none; }
+.code-area pre { color: var(--code-text); pointer-events: none; }
+.code-area textarea { background: transparent; color: transparent; caret-color: #fff; resize: none; outline: none; -webkit-text-fill-color: transparent; }
+.code-area textarea::selection { background: rgba(124,199,255,.3); }
+.code-area textarea:focus-visible { box-shadow: inset 0 0 0 2px var(--amber); }
+.win-bar { display: flex; gap: 8px; padding: 9px 12px; border-top: 1px solid var(--code-line); align-items: center; }
+.win-bar .btn { padding: 8px 14px; font-size: 15px; }
+.btn-run { background: #25304f; color: #e8ecf8; }
+.btn-soft { background: transparent; color: #aab4cf; font-weight: 600; }
+.win-bar .sp { flex: 1; }
+.console { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; }
+.console pre { margin: 0; padding: 8px 14px 14px; font-family: var(--mono); font-size: 14.5px; line-height: 1.6; white-space: pre; overflow: auto; max-height: 220px; min-height: 48px; }
+.console .empty { color: var(--muted); font-family: var(--sans); font-style: italic; }
+.console .e { color: var(--bad); font-family: var(--sans); font-weight: 600; white-space: pre-wrap; display: block; }
+.console .w { color: var(--warn); font-family: var(--sans); white-space: pre-wrap; display: block; font-size: 14.5px; }
+.console-head { padding: 10px 14px 0; display: flex; justify-content: space-between; }
+.console-head .lbl { margin: 0; }
+.qfoot { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 18px; }
+.qfoot .sp { flex: 1; }
+.btn-ragu[aria-pressed="true"] { background: var(--amber); border-color: var(--amber); color: #1d2140; }
+
+.side { position: sticky; top: 76px; display: flex; flex-direction: column; gap: 14px; }
+.navcard { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.navcard h3 { font-size: 16px; }
+.sec-lbl { font-size: 13.5px; font-weight: 700; color: var(--muted); margin-bottom: 6px; }
+.grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; }
+.nb { aspect-ratio: 1; border-radius: 8px; border: 1.5px solid var(--line); background: var(--card); font-weight: 700; font-size: 14.5px; font-variant-numeric: tabular-nums; padding: 0; }
+.nb.ans { background: var(--ok); border-color: var(--ok); color: #fff; }
+.nb.ragu { background: var(--amber); border-color: var(--amber); color: #1d2140; }
+.nb[aria-current="true"] { outline: 3px solid var(--navy); outline-offset: 1px; }
+:root[data-theme="dark"] .nb[aria-current="true"] { outline-color: #fff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .nb[aria-current="true"] { outline-color: #fff; } }
+.legend { display: flex; gap: 12px; flex-wrap: wrap; font-size: 13.5px; color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 4px; border: 1.5px solid var(--line); }
+.legend i.a { background: var(--ok); border-color: var(--ok); } .legend i.r { background: var(--amber); border-color: var(--amber); }
+.progress { font-size: 15px; color: var(--muted); }
+.progress b { color: var(--text); }
+
+/* ---------- result ---------- */
+.center { min-height: 100vh; min-height: 100dvh; display: grid; place-items: center; padding: 24px; }
+.result { background: var(--card); border: 1px solid var(--line); border-radius: 16px; max-width: 620px; width: 100%; padding: 32px; display: flex; flex-direction: column; gap: 18px; }
+.result h2 { font-family: var(--serif); font-size: 30px; color: var(--navy); }
+:root[data-theme="dark"] .result h2 { color: #dfe4ff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .result h2 { color: #dfe4ff; } }
+.score-big { display: flex; align-items: baseline; gap: 12px; }
+.score-big b { font-family: var(--serif); font-size: 72px; line-height: 1; color: var(--navy); font-variant-numeric: tabular-nums; }
+:root[data-theme="dark"] .score-big b { color: #fff; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .score-big b { color: #fff; } }
+.badge { font-weight: 700; padding: 4px 12px; border-radius: 99px; font-size: 15px; }
+.badge.ok { background: var(--ok-bg); color: var(--ok); } .badge.no { background: var(--bad-bg); color: var(--bad); }
+.parts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.parts div { background: var(--panel); border-radius: 10px; padding: 10px 14px; }
+.parts span { font-size: 14px; color: var(--muted); display: block; }
+.parts b { font-size: 20px; font-variant-numeric: tabular-nums; }
+.kv { display: grid; grid-template-columns: auto 1fr; gap: 4px 16px; font-size: 16px; }
+.kv dt { color: var(--muted); } .kv dd { margin: 0; font-weight: 600; }
+.sigcode { font-family: var(--mono); letter-spacing: .08em; }
+.note { background: var(--warn-bg); border-radius: 10px; padding: 12px 16px; font-size: 15.5px; }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ---------- teacher ---------- */
+.tbar { background: var(--navy); color: #fff; }
+.tbar-in { max-width: 1320px; margin: 0 auto; padding: 14px 20px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.tbar h1 { font-size: 20px; }
+.tbar .sp { flex: 1; }
+.tbar .btn-line { background: transparent; color: #fff; border-color: rgba(255,255,255,.35); }
+.teach { max-width: 1320px; margin: 0 auto; padding: 22px 20px 48px; display: flex; flex-direction: column; gap: 20px; }
+.tools { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.tools select { border: 1.5px solid var(--line); background: var(--card); border-radius: 9px; padding: 9px 12px; }
+.stats { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; }
+.stat { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+.stat span { font-size: 14px; color: var(--muted); display: block; }
+.stat b { font-family: var(--serif); font-size: 30px; font-variant-numeric: tabular-nums; }
+.tablewrap { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow-x: auto; }
+table.rekap { width: 100%; border-collapse: collapse; font-size: 15.5px; }
+.rekap th { text-align: left; font-size: 14px; color: var(--muted); padding: 10px 12px; border-bottom: 1px solid var(--line); background: var(--panel); white-space: nowrap; }
+.rekap td { padding: 9px 12px; border-bottom: 1px solid var(--line); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.rekap tr.click { cursor: pointer; }
+.rekap tr.click:hover td { background: var(--panel); }
+.rekap td.num { text-align: right; }
+.rekap .nilai { font-weight: 700; }
+.tag { font-size: 13px; font-weight: 700; padding: 2px 8px; border-radius: 99px; }
+.tag.ok { background: var(--ok-bg); color: var(--ok); } .tag.no { background: var(--bad-bg); color: var(--bad); } .tag.w { background: var(--warn-bg); color: var(--warn); }
+.empty-state { padding: 32px; text-align: center; color: var(--muted); }
+.two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.panel h2 { font-size: 19px; }
+.panel p { margin: 0; color: var(--muted); font-size: 15px; }
+.items { display: flex; flex-direction: column; gap: 5px; max-height: 520px; overflow-y: auto; }
+.item { display: grid; grid-template-columns: 44px 1fr 52px; gap: 10px; align-items: center; font-size: 14.5px; }
+.item .bar { height: 12px; background: var(--panel); border-radius: 6px; overflow: hidden; }
+.item .bar i { display: block; height: 100%; background: var(--ok); }
+.item .bar i.mid { background: var(--amber); } .item .bar i.lowb { background: var(--bad); }
+.item b { font-family: var(--mono); font-size: 13.5px; }
+.item span { text-align: right; font-variant-numeric: tabular-nums; }
+
+.sheet { position: fixed; inset: 0; background: rgba(10,14,40,.55); z-index: 20; display: grid; place-items: center; padding: 20px; }
+.sheet .card { background: var(--card); border-radius: 14px; max-width: 520px; width: 100%; max-height: 90%; overflow: auto; padding: 24px; display: flex; flex-direction: column; gap: 14px; }
+.sheet .card.wide { max-width: 900px; }
+.sheet h3 { font-size: 22px; }
+.sheet p { margin: 0; }
+.sheet .row { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+.det { display: flex; flex-direction: column; gap: 8px; }
+.det .d { border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; display: flex; flex-direction: column; gap: 6px; }
+.det .d header { display: flex; gap: 10px; align-items: center; }
+.det .d pre { margin: 0; font-family: var(--mono); font-size: 13.5px; background: var(--panel); border-radius: 8px; padding: 8px 10px; white-space: pre; overflow-x: auto; }
+.toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--navy); color: #fff; padding: 12px 20px; border-radius: 10px; z-index: 30; font-weight: 600; box-shadow: 0 8px 24px rgba(0,0,0,.25); max-width: 90vw; }
+
+@media (max-width: 980px) {
+  .login { grid-template-columns: 1fr; }
+  .login-side { padding: 32px 24px; }
+  .exam { grid-template-columns: 1fr; }
+  .side { position: fixed; inset: 0; background: rgba(10,14,40,.55); z-index: 10; padding: 20px; display: none; align-items: center; justify-content: center; top: 0; }
+  .side.open { display: flex; }
+  .side .navcard { max-width: 420px; width: 100%; max-height: 90%; overflow: auto; }
+  .btn-nav-toggle { display: inline-flex; }
+  .stats { grid-template-columns: repeat(3, 1fr); }
+  .two { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  body { font-size: 16px; }
+  .topbar .who, .topbar .title { display: none; }
+  .qcard { padding: 18px; }
+  .qtext { font-size: 17.5px; }
+  .opt { font-size: 16.5px; }
+  .editor { height: 280px; }
+  .parts { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .facts { grid-template-columns: repeat(3, auto); gap: 6px 22px; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="sheet" class="sheet hide" role="dialog" aria-modal="true"><div class="card" id="sheet-card"></div></div>
+
+<script>/* PHPMini: interpreter PHP sederhana untuk latihan perulangan (berjalan di browser). */
+(function (root) {
+  'use strict';
+
+  class PhpError extends Error {
+    constructor(kind, msg, line) { super(msg); this.kind = kind; this.line = line; }
+  }
+  class ExitSignal { }
+
+  /* ---------------- Array PHP (terurut) ---------------- */
+  class PArr {
+    constructor() { this.m = new Map(); this.next = 0; }
+    static normKey(k) {
+      if (typeof k === 'number') return Math.trunc(k);
+      if (typeof k === 'boolean') return k ? 1 : 0;
+      if (k === null || k === undefined) return '';
+      if (typeof k === 'string' && /^(0|-?[1-9]\d*)$/.test(k)) return parseInt(k, 10);
+      return String(k);
+    }
+    get(k) { return this.m.get(PArr.normKey(k)); }
+    has(k) { return this.m.has(PArr.normKey(k)); }
+    set(k, v) {
+      const key = PArr.normKey(k);
+      this.m.set(key, v);
+      if (typeof key === 'number' && key >= this.next) this.next = key + 1;
+    }
+    push(v) { this.m.set(this.next, v); this.next++; }
+    del(k) { this.m.delete(PArr.normKey(k)); }
+    get size() { return this.m.size; }
+    keys() { return [...this.m.keys()]; }
+    values() { return [...this.m.values()]; }
+    entries() { return [...this.m.entries()]; }
+    clone() {
+      const a = new PArr();
+      for (const [k, v] of this.m) a.m.set(k, v instanceof PArr ? v.clone() : v);
+      a.next = this.next; return a;
+    }
+    static from(list) { const a = new PArr(); for (const v of list) a.push(v); return a; }
+  }
+
+  /* ---------------- Tokenizer ---------------- */
+  const OPS = ['<=>', '===', '!==', '**=', '??=', '...', '==', '!=', '<>', '<=', '>=', '&&', '||', '++', '--', '+=', '-=', '*=', '/=', '.=', '%=', '**', '=>', '->', '::', '??',
+    '+', '-', '*', '/', '%', '.', '=', '<', '>', '!', '(', ')', '{', '}', '[', ']', ';', ',', '?', ':', '&', '@'];
+
+  function tokenize(src) {
+    const toks = [];
+    let i = 0, line = 1;
+    const n = src.length;
+    // teks sebelum <?php diabaikan
+    const open = src.search(/<\?php/i);
+    if (open >= 0) {
+      for (let k = 0; k < open; k++) if (src[k] === '\n') line++;
+      i = open + 5;
+    }
+    const push = (type, value, extra) => toks.push(Object.assign({ type, value, line }, extra || {}));
+    while (i < n) {
+      const c = src[i];
+      if (c === '\n') { line++; i++; continue; }
+      if (c === ' ' || c === '\t' || c === '\r') { i++; continue; }
+      if (c === '?' && src[i + 1] === '>') { push('op', ';'); i += 2; // sisa setelah ?> diabaikan kecuali ada <?php lagi
+        const again = src.slice(i).search(/<\?php/i);
+        if (again < 0) break;
+        for (let k = i; k < i + again; k++) if (src[k] === '\n') line++;
+        i += again + 5; continue; }
+      if (c === '/' && src[i + 1] === '/' || c === '#') {
+        while (i < n && src[i] !== '\n') { if (src[i] === '?' && src[i + 1] === '>') break; i++; }
+        continue;
+      }
+      if (c === '/' && src[i + 1] === '*') {
+        const end = src.indexOf('*/', i + 2);
+        const stop = end < 0 ? n : end + 2;
+        for (let k = i; k < stop; k++) if (src[k] === '\n') line++;
+        i = stop; continue;
+      }
+      if (c === '$' && /[A-Za-z_]/.test(src[i + 1] || '')) {
+        let j = i + 1; while (j < n && /\w/.test(src[j])) j++;
+        push('var', src.slice(i + 1, j)); i = j; continue;
+      }
+      if (/\d/.test(c) || (c === '.' && /\d/.test(src[i + 1] || ''))) {
+        let j = i;
+        if (c === '0' && /[xX]/.test(src[i + 1] || '')) { j += 2; while (/[0-9a-fA-F_]/.test(src[j] || '')) j++; push('num', parseInt(src.slice(i + 2, j).replace(/_/g, ''), 16)); i = j; continue; }
+        while (/[\d_]/.test(src[j] || '')) j++;
+        let isFloat = false;
+        if (src[j] === '.' && /\d/.test(src[j + 1] || '')) { isFloat = true; j++; while (/[\d_]/.test(src[j] || '')) j++; }
+        else if (src[j] === '.' && !/[.=]/.test(src[j + 1] || '') && /\d/.test(c)) { /* 5. dianggap concat */ }
+        if (/[eE]/.test(src[j] || '') && /[\d+-]/.test(src[j + 1] || '')) { isFloat = true; j++; if (/[+-]/.test(src[j])) j++; while (/\d/.test(src[j] || '')) j++; }
+        const text = src.slice(i, j).replace(/_/g, '');
+        push('num', isFloat ? parseFloat(text) : parseInt(text, 10), { isFloat }); i = j; continue;
+      }
+      if (/[A-Za-z_\\]/.test(c)) {
+        let j = i; while (j < n && /[\w\\]/.test(src[j])) j++;
+        push('id', src.slice(i, j).replace(/^\\/, '')); i = j; continue;
+      }
+      if (c === "'") {
+        let j = i + 1, s = '';
+        const startLine = line;
+        while (j < n && src[j] !== "'") {
+          if (src[j] === '\\' && (src[j + 1] === "'" || src[j + 1] === '\\')) { s += src[j + 1]; j += 2; continue; }
+          if (src[j] === '\n') line++;
+          s += src[j]; j++;
+        }
+        if (j >= n) throw new PhpError('parse', "string dengan kutip tunggal (') belum ditutup", startLine);
+        toks.push({ type: 'str', value: s, line: startLine }); i = j + 1; continue;
+      }
+      if (c === '"') {
+        const startLine = line;
+        let j = i + 1, raw = '';
+        while (j < n && src[j] !== '"') {
+          if (src[j] === '\\' && j + 1 < n) { raw += src[j] + src[j + 1]; if (src[j + 1] === '\n') line++; j += 2; continue; }
+          if (src[j] === '\n') line++;
+          raw += src[j]; j++;
+        }
+        if (j >= n) throw new PhpError('parse', 'string dengan kutip ganda (") belum ditutup', startLine);
+        toks.push({ type: 'istr', value: parseInterp(raw, startLine), line: startLine }); i = j + 1; continue;
+      }
+      let matched = null;
+      for (const op of OPS) if (src.startsWith(op, i)) { matched = op; break; }
+      if (!matched) throw new PhpError('parse', `karakter tidak dikenal '${c}'`, line);
+      push('op', matched); i += matched.length;
+    }
+    toks.push({ type: 'eof', value: 'akhir file', line });
+    return toks;
+  }
+
+  function unescapeDq(s) {
+    return s.replace(/\\(u\{[0-9a-fA-F]+\}|x[0-9a-fA-F]{1,2}|[0-7]{1,3}|.)/g, (m, e) => {
+      switch (e[0]) {
+        case 'n': return e.length === 1 ? '\n' : m;
+        case 't': return '\t'; case 'r': return '\r'; case 'v': return '\v'; case 'f': return '\f';
+        case 'e': return '\x1b'; case '\\': return '\\'; case '$': return '$'; case '"': return '"';
+        case 'u': return String.fromCodePoint(parseInt(e.slice(2, -1), 16));
+        case 'x': return String.fromCharCode(parseInt(e.slice(1), 16));
+        default:
+          if (/^[0-7]+$/.test(e)) return String.fromCharCode(parseInt(e, 8));
+          return m;
+      }
+    });
+  }
+
+  // memecah isi string kutip ganda menjadi bagian teks & ekspresi
+  function parseInterp(raw, line) {
+    const parts = [];
+    let buf = '', i = 0;
+    const flush = () => { if (buf) { parts.push({ t: 'text', v: unescapeDq(buf) }); buf = ''; } };
+    while (i < raw.length) {
+      const c = raw[i];
+      if (c === '\\' && i + 1 < raw.length) { buf += c + raw[i + 1]; i += 2; continue; }
+      if (c === '{' && raw[i + 1] === '$') {
+        let depth = 1, j = i + 1;
+        while (j < raw.length && depth > 0) { if (raw[j] === '{') depth++; else if (raw[j] === '}') depth--; if (depth > 0) j++; }
+        flush();
+        const inner = raw.slice(i + 1, j);
+        const p = new Parser(tokenizeFrag(inner, line));
+        const e = p.parseExpr(0); p.expect('eof');
+        parts.push({ t: 'expr', v: e }); i = j + 1; continue;
+      }
+      if (c === '$' && /[A-Za-z_]/.test(raw[i + 1] || '')) {
+        let j = i + 1; while (j < raw.length && /\w/.test(raw[j])) j++;
+        flush();
+        let node = { type: 'var', name: raw.slice(i + 1, j), line };
+        if (raw[j] === '[') {
+          const close = raw.indexOf(']', j);
+          if (close > 0) {
+            const k = raw.slice(j + 1, close);
+            let keyNode = null;
+            if (/^-?\d+$/.test(k)) keyNode = { type: 'lit', v: parseInt(k, 10) };
+            else if (/^\$\w+$/.test(k)) keyNode = { type: 'var', name: k.slice(1), line };
+            else if (/^\w+$/.test(k)) keyNode = { type: 'lit', v: k };
+            else if (/^'[^']*'$/.test(k)) keyNode = { type: 'lit', v: k.slice(1, -1) };
+            if (keyNode) { node = { type: 'idx', obj: node, key: keyNode, line }; j = close + 1; }
+          }
+        }
+        parts.push({ t: 'expr', v: node }); i = j; continue;
+      }
+      buf += c; i++;
+    }
+    flush();
+    return parts;
+  }
+  function tokenizeFrag(code, line) {
+    const t = tokenize('<?php ' + code);
+    t.forEach(x => x.line = line);
+    return t;
+  }
+
+  /* ---------------- Parser ---------------- */
+  const BIN = {
+    'or': [1, 2], 'xor': [2, 3], 'and': [3, 4],
+    '??': [6, 6], '||': [7, 8], '&&': [8, 9],
+    '==': [9, 10], '!=': [9, 10], '===': [9, 10], '!==': [9, 10], '<>': [9, 10], '<=>': [9, 10],
+    '<': [10, 11], '<=': [10, 11], '>': [10, 11], '>=': [10, 11],
+    '.': [11, 12], '+': [12, 13], '-': [12, 13], '*': [13, 14], '/': [13, 14], '%': [13, 14],
+    '**': [16, 16]
+  };
+  const ASSIGN = new Set(['=', '+=', '-=', '*=', '/=', '.=', '%=', '**=', '??=']);
+  const CASTS = { int: 'int', integer: 'int', float: 'float', double: 'float', string: 'string', bool: 'bool', boolean: 'bool', array: 'array' };
+
+  function describe(t) {
+    if (t.type === 'eof') return 'akhir file';
+    if (t.type === 'var') return "'$" + t.value + "'";
+    if (t.type === 'str' || t.type === 'istr') return 'string';
+    return "'" + t.value + "'";
+  }
+
+  class Parser {
+    constructor(toks) { this.t = toks; this.p = 0; }
+    peek(o = 0) { return this.t[this.p + o]; }
+    next() { return this.t[this.p++]; }
+    isOp(v, o = 0) { const t = this.peek(o); return t.type === 'op' && t.value === v; }
+    isKw(v, o = 0) { const t = this.peek(o); return t.type === 'id' && t.value.toLowerCase() === v; }
+    fail(t, expected) {
+      throw new PhpError('parse', `syntax error, tidak terduga ${describe(t)}` + (expected ? `, seharusnya ${expected}` : ''), t.line);
+    }
+    expect(v) {
+      const t = this.peek();
+      if (v === 'eof') { if (t.type !== 'eof') this.fail(t); return t; }
+      if (t.type === 'op' && t.value === v) return this.next();
+      this.fail(t, "'" + v + "'");
+    }
+    semi() {
+      const t = this.peek();
+      if (t.type === 'op' && t.value === ';') { this.next(); return; }
+      if (t.type === 'eof') return; // toleransi di akhir file
+      const prev = this.t[this.p - 1];
+      throw new PhpError('parse', `syntax error, tidak terduga ${describe(t)}. Kemungkinan lupa titik koma (;) di akhir baris ${prev ? prev.line : t.line}`, t.line);
+    }
+    program() {
+      const body = [];
+      while (this.peek().type !== 'eof') body.push(this.statement());
+      return body;
+    }
+    block() {
+      const t = this.expect('{'); const body = [];
+      while (!this.isOp('}')) {
+        if (this.peek().type === 'eof') throw new PhpError('parse', "kurung kurawal '{' belum ditutup dengan '}'", t.line);
+        body.push(this.statement());
+      }
+      this.next();
+      return { type: 'block', body, line: t.line };
+    }
+    // mendukung "for (...):" ... "endfor;"
+    body(endKw) {
+      if (this.isOp(':')) {
+        const t = this.next(); const stmts = [];
+        const ends = Array.isArray(endKw) ? endKw : [endKw];
+        while (!ends.some(k => this.isKw(k))) {
+          if (this.peek().type === 'eof') throw new PhpError('parse', `'${ends[0]}' tidak ditemukan`, t.line);
+          stmts.push(this.statement());
+        }
+        return { node: { type: 'block', body: stmts, line: t.line }, alt: true };
+      }
+      return { node: this.statement(), alt: false };
+    }
+    statement() {
+      const t = this.peek();
+      if (t.type === 'op') {
+        if (t.value === '{') return this.block();
+        if (t.value === ';') { this.next(); return { type: 'empty', line: t.line }; }
+      }
+      if (t.type === 'id') {
+        const kw = t.value.toLowerCase();
+        switch (kw) {
+          case 'echo': case 'print': {
+            this.next(); const args = [this.parseExpr(0)];
+            if (kw === 'echo') while (this.isOp(',')) { this.next(); args.push(this.parseExpr(0)); }
+            this.semi(); return { type: 'echo', args, line: t.line };
+          }
+          case 'if': return this.ifStmt();
+          case 'while': {
+            this.next(); this.expect('('); const cond = this.parseExpr(0); this.expect(')');
+            const b = this.body('endwhile'); if (b.alt) { this.next(); this.semi(); }
+            return { type: 'while', cond, body: b.node, line: t.line };
+          }
+          case 'do': {
+            this.next(); const body = this.statement();
+            if (!this.isKw('while')) this.fail(this.peek(), "'while' setelah blok do");
+            this.next(); this.expect('('); const cond = this.parseExpr(0); this.expect(')'); this.semi();
+            return { type: 'dowhile', cond, body, line: t.line };
+          }
+          case 'for': {
+            this.next(); this.expect('(');
+            const list = (end) => { const a = []; if (this.isOp(end)) return a; a.push(this.parseExpr(0)); while (this.isOp(',')) { this.next(); a.push(this.parseExpr(0)); } return a; };
+            const init = list(';'); this.expect(';');
+            const cond = list(';'); this.expect(';');
+            const upd = list(')'); this.expect(')');
+            const b = this.body('endfor'); if (b.alt) { this.next(); this.semi(); }
+            return { type: 'for', init, cond, upd, body: b.node, line: t.line };
+          }
+          case 'foreach': {
+            this.next(); this.expect('('); const subject = this.parseExpr(0);
+            if (!this.isKw('as')) this.fail(this.peek(), "'as'");
+            this.next();
+            let byRef = false;
+            if (this.isOp('&')) { this.next(); byRef = true; }
+            let keyT = null, valT = this.parseExpr(20);
+            if (this.isOp('=>')) { this.next(); keyT = valT; if (this.isOp('&')) { this.next(); byRef = true; } valT = this.parseExpr(20); }
+            this.expect(')');
+            const b = this.body('endforeach'); if (b.alt) { this.next(); this.semi(); }
+            return { type: 'foreach', subject, keyT, valT, byRef, body: b.node, line: t.line };
+          }
+          case 'break': case 'continue': {
+            this.next(); let lv = 1;
+            if (this.peek().type === 'num') lv = this.next().value;
+            this.semi(); return { type: kw, level: lv, line: t.line };
+          }
+          case 'switch': return this.switchStmt();
+          case 'exit': case 'die': {
+            this.next(); let arg = null;
+            if (this.isOp('(')) { this.next(); if (!this.isOp(')')) arg = this.parseExpr(0); this.expect(')'); }
+            this.semi(); return { type: 'exit', arg, line: t.line };
+          }
+          case 'function': throw new PhpError('parse', 'membuat function sendiri belum didukung di game ini — cukup gunakan perulangan', t.line);
+          case 'else': case 'elseif': throw new PhpError('parse', `'${t.value}' tanpa if sebelumnya (cek kurung kurawal)`, t.line);
+        }
+      }
+      if (t.type === 'op' && t.value === '}') this.fail(t);
+      const e = this.parseExpr(0); this.semi();
+      return { type: 'expr', e, line: t.line };
+    }
+    ifStmt() {
+      const t = this.next(); this.expect('('); const cond = this.parseExpr(0); this.expect(')');
+      if (this.isOp(':')) {
+        const b = this.body(['elseif', 'else', 'endif']);
+        let alt = null;
+        if (this.isKw('elseif')) alt = this.ifStmt();
+        else if (this.isKw('else')) { this.next(); const eb = this.body('endif'); this.next(); this.semi(); alt = eb.node; }
+        else { this.next(); this.semi(); }
+        return { type: 'if', cond, then: b.node, alt, line: t.line };
+      }
+      const then = this.statement();
+      let alt = null;
+      if (this.isKw('elseif')) alt = this.ifStmt();
+      else if (this.isKw('else')) {
+        this.next();
+        if (this.isKw('if')) alt = this.ifStmt(); else alt = this.statement();
+      }
+      return { type: 'if', cond, then, alt, line: t.line };
+    }
+    switchStmt() {
+      const t = this.next(); this.expect('('); const subj = this.parseExpr(0); this.expect(')'); this.expect('{');
+      const cases = [];
+      while (!this.isOp('}')) {
+        let test = null;
+        if (this.isKw('case')) { this.next(); test = this.parseExpr(0); }
+        else if (this.isKw('default')) { this.next(); test = 'default'; }
+        else this.fail(this.peek(), "'case' atau 'default'");
+        if (this.isOp(':') || this.isOp(';')) this.next(); else this.fail(this.peek(), "':'");
+        const body = [];
+        while (!this.isKw('case') && !this.isKw('default') && !this.isOp('}')) {
+          if (this.peek().type === 'eof') throw new PhpError('parse', 'switch belum ditutup', t.line);
+          body.push(this.statement());
+        }
+        cases.push({ test, body });
+      }
+      this.next();
+      return { type: 'switch', subj, cases, line: t.line };
+    }
+    parseExpr(minBp) {
+      let left = this.prefix();
+      for (;;) {
+        const t = this.peek();
+        let op = null;
+        if (t.type === 'op') op = t.value;
+        else if (t.type === 'id' && ['and', 'or', 'xor'].includes(t.value.toLowerCase())) op = t.value.toLowerCase();
+        if (op === null) break;
+        if (op === '[' ) { if (20 < minBp) break; this.next();
+          let key = null; if (!this.isOp(']')) key = this.parseExpr(0); this.expect(']');
+          left = { type: 'idx', obj: left, key, line: t.line }; continue; }
+        if (op === '{' && false) break;
+        if (op === '++' || op === '--') { if (20 < minBp) break; this.next(); this.lval(left, t);
+          left = { type: 'incdec', op, pre: false, target: left, line: t.line }; continue; }
+        if (ASSIGN.has(op)) {
+          if (4 < minBp && !(left.type === 'var' || left.type === 'idx')) break;
+          if (!(left.type === 'var' || left.type === 'idx')) { if (4 < minBp) break; }
+          this.next(); this.lval(left, t);
+          const value = this.parseExpr(4);
+          left = { type: 'assign', op, target: left, value, line: t.line }; continue;
+        }
+        if (op === '?') {
+          if (5 < minBp) break; this.next();
+          let a = null; if (!this.isOp(':')) a = this.parseExpr(0);
+          this.expect(':'); const b = this.parseExpr(6);
+          left = { type: 'tern', c: left, a, b, line: t.line }; continue;
+        }
+        const bp = BIN[op];
+        if (!bp || bp[0] < minBp) break;
+        this.next();
+        const right = this.parseExpr(bp[1]);
+        left = { type: 'bin', op, l: left, r: right, line: t.line };
+      }
+      return left;
+    }
+    lval(node, t) {
+      if (node.type !== 'var' && node.type !== 'idx') throw new PhpError('parse', `sisi kiri ${describe(t)} harus berupa variabel`, t.line);
+    }
+    args() {
+      this.expect('('); const a = [];
+      while (!this.isOp(')')) {
+        a.push(this.parseExpr(0));
+        if (this.isOp(',')) this.next(); else if (!this.isOp(')')) this.fail(this.peek(), "',' atau ')'");
+      }
+      this.next(); return a;
+    }
+    arrayLit(close) {
+      const items = [];
+      while (!this.isOp(close)) {
+        let v = this.parseExpr(0), k = null;
+        if (this.isOp('=>')) { this.next(); k = v; v = this.parseExpr(0); }
+        items.push({ k, v });
+        if (this.isOp(',')) this.next(); else if (!this.isOp(close)) this.fail(this.peek(), `',' atau '${close}'`);
+      }
+      this.next(); return items;
+    }
+    prefix() {
+      const t = this.next();
+      switch (t.type) {
+        case 'num': return { type: 'lit', v: t.value, line: t.line };
+        case 'str': return { type: 'lit', v: t.value, line: t.line };
+        case 'istr': return { type: 'interp', parts: t.value, line: t.line };
+        case 'var': return { type: 'var', name: t.value, line: t.line };
+        case 'id': {
+          const w = t.value.toLowerCase();
+          if (w === 'true') return { type: 'lit', v: true, line: t.line };
+          if (w === 'false') return { type: 'lit', v: false, line: t.line };
+          if (w === 'null') return { type: 'lit', v: null, line: t.line };
+          if (w === 'array' && this.isOp('(')) { this.next(); return { type: 'arr', items: this.arrayLit(')'), line: t.line }; }
+          if (w === 'print') { const e = this.parseExpr(4); return { type: 'print', e, line: t.line }; }
+          if (this.isOp('(')) return { type: 'call', name: w, args: this.args(), line: t.line };
+          const consts = { php_eol: '\n', str_pad_left: 0, str_pad_right: 1, str_pad_both: 2, php_int_max: Number.MAX_SAFE_INTEGER, m_pi: Math.PI, inf: Infinity };
+          if (Object.prototype.hasOwnProperty.call(consts, w)) return { type: 'lit', v: consts[w], line: t.line };
+          if (['echo', 'for', 'while', 'foreach', 'if', 'do', 'break', 'continue'].includes(w))
+            throw new PhpError('parse', `syntax error, tidak terduga '${t.value}'. Periksa baris sebelumnya — mungkin lupa titik koma (;) atau kurung`, t.line);
+          throw new PhpError('fatal', `Konstanta tidak dikenal "${t.value}". Lupa tanda $ di depan nama variabel?`, t.line);
+        }
+        case 'op': {
+          const v = t.value;
+          if (v === '(') {
+            const c = this.peek();
+            if (c.type === 'id' && CASTS[c.value.toLowerCase()] && this.isOp(')', 1)) {
+              this.next(); this.next();
+              return { type: 'cast', to: CASTS[c.value.toLowerCase()], e: this.parseExpr(15), line: t.line };
+            }
+            const e = this.parseExpr(0); this.expect(')'); return e;
+          }
+          if (v === '[') return { type: 'arr', items: this.arrayLit(']'), line: t.line };
+          if (v === '!') return { type: 'not', e: this.parseExpr(14), line: t.line };
+          if (v === '-' || v === '+') return { type: 'neg', op: v, e: this.parseExpr(15), line: t.line };
+          if (v === '@') return this.parseExpr(15);
+          if (v === '++' || v === '--') { const e = this.parseExpr(20); this.lval(e, t); return { type: 'incdec', op: v, pre: true, target: e, line: t.line }; }
+        }
+      }
+      this.fail(t);
+    }
+  }
+
+  /* ---------------- Nilai & konversi ---------------- */
+  const NUMERIC_RE = /^\s*[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?\s*$/;
+  const isNumericStr = s => typeof s === 'string' && NUMERIC_RE.test(s);
+
+  function fmtFloat(n) {
+    if (Number.isNaN(n)) return 'NAN';
+    if (!Number.isFinite(n)) return n > 0 ? 'INF' : '-INF';
+    if (n === 0) return Object.is(n, -0) ? '-0' : '0';
+    if (Number.isInteger(n) && Math.abs(n) < 1e15) return String(n);
+    const [m, e] = n.toExponential(13).split('e');
+    const exp = parseInt(e, 10);
+    if (exp < -4 || exp >= 15) {
+      let mant = String(parseFloat(m));
+      if (!mant.includes('.')) mant += '.0';
+      return mant + 'E' + (exp < 0 ? '-' : '+') + Math.abs(exp);
+    }
+    return String(parseFloat(n.toPrecision(14)));
+  }
+
+  function typeName(v) {
+    if (v === null || v === undefined) return 'null';
+    if (typeof v === 'boolean') return 'bool';
+    if (typeof v === 'number') return Number.isInteger(v) ? 'int' : 'float';
+    if (typeof v === 'string') return 'string';
+    if (v instanceof PArr) return 'array';
+    return 'unknown';
+  }
+
+  /* ---------------- Interpreter ---------------- */
+  function run(code, opts = {}) {
+    const maxSteps = opts.maxSteps || 3000000;
+    const maxOut = opts.maxOutput || 200000;
+    const out = [];
+    let outLen = 0;
+    const warnings = [];
+    const vars = Object.create(null);
+    const stats = { forIter: 0, whileIter: 0, doIter: 0, foreachIter: 0, breakCount: 0, continueCount: 0, depth: 0, maxDepth: 0, echoInLoop: 0, echoCount: 0, steps: 0, loops: [] };
+    const loopStats = new Map();
+    let steps = 0;
+    let curLine = 0;
+
+    const warn = (msg, line) => { if (warnings.length < 30) warnings.push({ msg, line: line || curLine }); };
+    const err = (msg, line) => new PhpError('fatal', msg, line || curLine);
+
+    function tick(line) {
+      if (++steps > maxSteps) {
+        const e = new PhpError('timeout', 'Program dihentikan karena berjalan terlalu lama (lebih dari ' + (maxSteps / 1e6) + ' juta langkah). Kemungkinan besar terjadi infinite loop: kondisi perulangan tidak pernah bernilai false.', line);
+        throw e;
+      }
+    }
+
+    function toStr(v, line) {
+      if (v === null || v === undefined) return '';
+      if (typeof v === 'boolean') return v ? '1' : '';
+      if (typeof v === 'number') return fmtFloat(v);
+      if (typeof v === 'string') return v;
+      if (v instanceof PArr) { warn('Array to string conversion', line); return 'Array'; }
+      return String(v);
+    }
+    function toBool(v) {
+      if (v === null || v === undefined) return false;
+      if (typeof v === 'boolean') return v;
+      if (typeof v === 'number') return v !== 0;
+      if (typeof v === 'string') return v !== '' && v !== '0';
+      if (v instanceof PArr) return v.size > 0;
+      return true;
+    }
+    function toNum(v, line, opName) {
+      if (v === null || v === undefined) return 0;
+      if (typeof v === 'boolean') return v ? 1 : 0;
+      if (typeof v === 'number') return v;
+      if (typeof v === 'string') {
+        if (isNumericStr(v)) return parseFloat(v);
+        const m = v.match(/^\s*[+-]?(\d+(\.\d*)?|\.\d+)([eE][+-]?\d+)?/);
+        if (m) { warn(`A non-numeric value encountered ("${v}")`, line); return parseFloat(m[0]); }
+        if (opName) throw err(`Unsupported operand types: string ${opName} — nilai "${v}" bukan angka`, line);
+        warn(`A non-numeric value encountered ("${v}")`, line); return 0;
+      }
+      if (v instanceof PArr) throw err(`Unsupported operand types: array ${opName || ''} — array tidak bisa dihitung langsung`, line);
+      return 0;
+    }
+    function toInt(v, line) { const n = toNum(v, line); return Number.isFinite(n) ? Math.trunc(n) : 0; }
+
+    function looseEq(a, b) {
+      if (a === undefined) a = null; if (b === undefined) b = null;
+      if (a instanceof PArr || b instanceof PArr) {
+        if (!(a instanceof PArr && b instanceof PArr)) return toBool(a) === toBool(b) && (a === null || b === null || typeof a === 'boolean' || typeof b === 'boolean');
+        if (a.size !== b.size) return false;
+        for (const [k, v] of a.m) { if (!b.m.has(k) || !looseEq(v, b.m.get(k))) return false; }
+        return true;
+      }
+      if (a === null && b === null) return true;
+      if (typeof a === 'boolean' || typeof b === 'boolean' || a === null || b === null) {
+        if (a === null && typeof b === 'string') return b === '';
+        if (b === null && typeof a === 'string') return a === '';
+        return toBool(a) === toBool(b);
+      }
+      if (typeof a === 'number' && typeof b === 'number') return a === b;
+      if (typeof a === 'string' && typeof b === 'string') {
+        if (isNumericStr(a) && isNumericStr(b)) return parseFloat(a) === parseFloat(b);
+        return a === b;
+      }
+      const [num, str] = typeof a === 'number' ? [a, b] : [b, a];
+      if (isNumericStr(str)) return num === parseFloat(str);
+      return fmtFloat(num) === str;
+    }
+    function cmp(a, b) {
+      if (a === undefined) a = null; if (b === undefined) b = null;
+      if (typeof a === 'string' && typeof b === 'string' && !(isNumericStr(a) && isNumericStr(b))) return a < b ? -1 : a > b ? 1 : 0;
+      if (typeof a === 'boolean' || typeof b === 'boolean' || a === null || b === null) {
+        if (a === null && typeof b === 'string') return '' < b ? -1 : 0;
+        if (b === null && typeof a === 'string') return a > '' ? 1 : 0;
+        const x = toBool(a) ? 1 : 0, y = toBool(b) ? 1 : 0; return x - y;
+      }
+      if (a instanceof PArr && b instanceof PArr) return Math.sign(a.size - b.size);
+      if (a instanceof PArr) return 1; if (b instanceof PArr) return -1;
+      if (typeof a === 'string' && !isNumericStr(a)) { const s = fmtFloat(b); return a < s ? -1 : a > s ? 1 : 0; }
+      if (typeof b === 'string' && !isNumericStr(b)) { const s = fmtFloat(a); return s < b ? -1 : s > b ? 1 : 0; }
+      const x = toNum(a), y = toNum(b);
+      return x < y ? -1 : x > y ? 1 : 0;
+    }
+    function strictEq(a, b) {
+      if (a === undefined) a = null; if (b === undefined) b = null;
+      if (a instanceof PArr && b instanceof PArr) {
+        if (a.size !== b.size) return false;
+        const ea = a.entries(), eb = b.entries();
+        for (let i = 0; i < ea.length; i++) if (ea[i][0] !== eb[i][0] || !strictEq(ea[i][1], eb[i][1])) return false;
+        return true;
+      }
+      return a === b;
+    }
+    const copyVal = v => (v instanceof PArr ? v.clone() : v);
+
+    function arith(op, a, b, line) {
+      const x = toNum(a, line, op), y = toNum(b, line, op);
+      switch (op) {
+        case '+': return x + y;
+        case '-': return x - y;
+        case '*': return x * y;
+        case '/': if (y === 0) throw err('Division by zero — tidak boleh membagi dengan nol', line); return x / y;
+        case '%': { const xi = Math.trunc(x), yi = Math.trunc(y); if (yi === 0) throw err('Modulo by zero — tidak boleh modulo dengan nol', line); const r = xi % yi; return r === 0 ? 0 : r; }
+        case '**': return Math.pow(x, y);
+      }
+    }
+    function binop(op, a, b, line) {
+      switch (op) {
+        case '.': return toStr(a, line) + toStr(b, line);
+        case '+':
+          if (a instanceof PArr && b instanceof PArr) { const r = a.clone(); for (const [k, v] of b.m) if (!r.m.has(k)) r.set(k, copyVal(v)); return r; }
+          return arith(op, a, b, line);
+        case '-': case '*': case '/': case '%': case '**': return arith(op, a, b, line);
+        case '==': return looseEq(a, b);
+        case '!=': case '<>': return !looseEq(a, b);
+        case '===': return strictEq(a, b);
+        case '!==': return !strictEq(a, b);
+        case '<': return cmp(a, b) < 0;
+        case '<=': return cmp(a, b) <= 0;
+        case '>': return cmp(a, b) > 0;
+        case '>=': return cmp(a, b) >= 0;
+        case '<=>': return cmp(a, b);
+      }
+      throw err('operator tidak dikenal ' + op, line);
+    }
+
+    function readVar(name, line, quiet) {
+      if (name === 'this') throw err('$this tidak tersedia', line);
+      if (!(name in vars)) { if (!quiet) warn(`Undefined variable $${name} — variabel belum pernah diisi nilai`, line); return null; }
+      return vars[name];
+    }
+
+    function evalIdx(node, quiet) {
+      const base = evalExpr(node.obj, quiet);
+      if (node.key === null) throw err('Cannot use [] for reading — [] hanya untuk menambah elemen', node.line);
+      const k = evalExpr(node.key);
+      if (base instanceof PArr) {
+        if (!base.has(k)) { if (!quiet) warn(`Undefined array key ${typeof k === 'string' ? '"' + k + '"' : toStr(k)}`, node.line); return null; }
+        return base.get(k);
+      }
+      if (typeof base === 'string') {
+        let i = toInt(k, node.line);
+        if (i < 0) i += base.length;
+        if (i < 0 || i >= base.length) { if (!quiet) warn(`Uninitialized string offset ${toStr(k)}`, node.line); return ''; }
+        return base[i];
+      }
+      if (base === null || base === undefined) { if (!quiet && base === undefined) warn('Trying to access array offset on null', node.line); return null; }
+      if (!quiet) warn(`Trying to access array offset on value of type ${typeName(base)}`, node.line);
+      return null;
+    }
+
+    function containerFor(node) {
+      if (node.type === 'var') {
+        let v = vars[node.name];
+        if (v === undefined || v === null) { v = new PArr(); vars[node.name] = v; }
+        if (!(v instanceof PArr)) {
+          if (typeof v === 'string') throw err('Mengubah karakter di dalam string belum didukung di game ini', node.line);
+          throw err(`Cannot use a scalar value as an array ($${node.name} bukan array)`, node.line);
+        }
+        return v;
+      }
+      if (node.type === 'idx') {
+        const parent = containerFor(node.obj);
+        if (node.key === null) { const a = new PArr(); parent.push(a); return a; }
+        const k = evalExpr(node.key);
+        let child = parent.get(k);
+        if (child === undefined || child === null) { child = new PArr(); parent.set(k, child); }
+        if (!(child instanceof PArr)) throw err('Cannot use a scalar value as an array', node.line);
+        return child;
+      }
+      throw err('Tidak bisa diisi nilai', node.line);
+    }
+    // referensi: {get, set}
+    function ref(node) {
+      if (node.type === 'var') {
+        return { get: (q) => readVar(node.name, node.line, q), set: v => { vars[node.name] = v; } };
+      }
+      if (node.type === 'idx') {
+        const cont = containerFor(node.obj);
+        if (node.key === null) {
+          return { get: () => null, set: v => cont.push(v) };
+        }
+        const k = evalExpr(node.key);
+        return {
+          get: (q) => { if (!cont.has(k)) { if (!q) warn(`Undefined array key ${typeof k === 'string' ? '"' + k + '"' : toStr(k)}`, node.line); return null; } return cont.get(k); },
+          set: v => cont.set(k, v)
+        };
+      }
+      throw err('Tidak bisa diisi nilai', node.line);
+    }
+
+    function evalExpr(node, quiet) {
+      switch (node.type) {
+        case 'lit': return node.v;
+        case 'interp': { let s = ''; for (const p of node.parts) s += p.t === 'text' ? p.v : toStr(evalExpr(p.v), node.line); return s; }
+        case 'var': return readVar(node.name, node.line, quiet);
+        case 'idx': return evalIdx(node, quiet);
+        case 'arr': {
+          const a = new PArr();
+          for (const it of node.items) { const v = copyVal(evalExpr(it.v)); if (it.k) a.set(evalExpr(it.k), v); else a.push(v); }
+          return a;
+        }
+        case 'bin': {
+          const op = node.op;
+          if (op === '&&' || op === 'and') return toBool(evalExpr(node.l)) ? toBool(evalExpr(node.r)) : false;
+          if (op === '||' || op === 'or') return toBool(evalExpr(node.l)) ? true : toBool(evalExpr(node.r));
+          if (op === 'xor') return toBool(evalExpr(node.l)) !== toBool(evalExpr(node.r));
+          if (op === '??') { const l = evalExpr(node.l, true); return l === null || l === undefined ? evalExpr(node.r) : l; }
+          return binop(op, evalExpr(node.l), evalExpr(node.r), node.line);
+        }
+        case 'not': return !toBool(evalExpr(node.e));
+        case 'neg': { const v = toNum(evalExpr(node.e), node.line, node.op); return node.op === '-' ? (v === 0 ? 0 : -v) : v; }
+        case 'cast': {
+          const v = evalExpr(node.e);
+          switch (node.to) {
+            case 'int': return toInt(v, node.line);
+            case 'float': return toNum(v, node.line);
+            case 'string': return toStr(v, node.line);
+            case 'bool': return toBool(v);
+            case 'array': return v instanceof PArr ? v : (v === null ? new PArr() : PArr.from([v]));
+          }
+          break;
+        }
+        case 'tern': {
+          const c = evalExpr(node.c);
+          if (node.a === null) return toBool(c) ? c : evalExpr(node.b);
+          return toBool(c) ? evalExpr(node.a) : evalExpr(node.b);
+        }
+        case 'assign': {
+          if (node.op === '=') {
+            const v = copyVal(evalExpr(node.value));
+            const r = ref(node.target); r.set(v); return v;
+          }
+          const r = ref(node.target);
+          if (node.op === '??=') { const cur = r.get(true); if (cur !== null && cur !== undefined) return cur; const v = copyVal(evalExpr(node.value)); r.set(v); return v; }
+          const cur = r.get(false);
+          const rhs = evalExpr(node.value);
+          const v = binop(node.op.slice(0, -1), cur, rhs, node.line);
+          r.set(v); return v;
+        }
+        case 'incdec': {
+          const r = ref(node.target);
+          const cur = r.get(false);
+          let nv;
+          if (cur === null || cur === undefined) nv = node.op === '++' ? 1 : null;
+          else if (typeof cur === 'string' && !isNumericStr(cur)) {
+            if (node.op === '--') nv = cur;
+            else nv = strInc(cur);
+          }
+          else if (typeof cur === 'boolean') nv = cur;
+          else if (cur instanceof PArr) throw err('Cannot increment array', node.line);
+          else nv = toNum(cur) + (node.op === '++' ? 1 : -1);
+          r.set(nv);
+          return node.pre ? nv : cur;
+        }
+        case 'print': emit(toStr(evalExpr(node.e), node.line)); return 1;
+        case 'call': return callFn(node);
+      }
+      throw err('Ekspresi tidak dikenal', node.line);
+    }
+
+    function strInc(s) {
+      if (s === '') return '1';
+      const chars = s.split(''); let i = chars.length - 1;
+      while (i >= 0) {
+        const c = chars[i];
+        if (c === 'z') { chars[i] = 'a'; i--; }
+        else if (c === 'Z') { chars[i] = 'A'; i--; }
+        else if (c === '9') { chars[i] = '0'; i--; }
+        else if (/[a-yA-Y0-8]/.test(c)) { chars[i] = String.fromCharCode(c.charCodeAt(0) + 1); return chars.join(''); }
+        else return chars.join('');
+      }
+      const f = s[0]; const pre = f >= 'a' && f <= 'z' ? 'a' : f >= 'A' && f <= 'Z' ? 'A' : '1';
+      return pre + chars.join('');
+    }
+
+    function emit(s) {
+      if (!s) return;
+      outLen += s.length;
+      if (outLen > maxOut) throw new PhpError('timeout', 'Output terlalu panjang dan dihentikan. Kemungkinan terjadi infinite loop yang terus mencetak.', curLine);
+      out.push(s);
+      stats.echoCount++;
+      if (stats.depth > 0) stats.echoInLoop++;
+    }
+
+    function roundHalfUp(x, p) {
+      const m = Math.pow(10, p || 0);
+      const v = Math.abs(x) * m;
+      const r = Math.round(v + 1e-9 * Math.max(1, v)) ;
+      return Math.sign(x) * r / m;
+    }
+    function numberFormat(n, dec, dp, ts) {
+      dec = Math.max(0, dec | 0);
+      const v = roundHalfUp(n, dec);
+      const neg = v < 0;
+      let [ip, fp] = Math.abs(v).toFixed(dec).split('.');
+      ip = ip.replace(/\B(?=(\d{3})+(?!\d))/g, ts);
+      return (neg ? '-' : '') + ip + (dec > 0 ? dp + fp : '');
+    }
+    function sprintf(fmt, args, line) {
+      let ai = 0;
+      return fmt.replace(/%(?:(\d+)\$)?((?:[-+ 0]|'.)*)(\d+)?(?:\.(\d+))?([bcdeEfFgGosuxX%])/g, (m, argnum, flagsStr, width, prec, conv) => {
+        if (conv === '%') return '%';
+        let pad = ' ', left = false, plus = false;
+        for (let i = 0; i < flagsStr.length; i++) {
+          const f = flagsStr[i];
+          if (f === '-') left = true; else if (f === '+') plus = true; else if (f === '0') pad = '0';
+          else if (f === "'") { pad = flagsStr[i + 1]; i++; }
+        }
+        const v = argnum ? args[parseInt(argnum, 10) - 1] : args[ai++];
+        if (v === undefined) throw err('ArgumentCountError: argumen sprintf/printf kurang', line);
+        let s;
+        switch (conv) {
+          case 'd': case 'u': { const n = toInt(v, line); s = String(Math.abs(n)); if (n < 0) s = '-' + s; else if (plus) s = '+' + s; break; }
+          case 'f': case 'F': { const n = toNum(v, line); s = roundHalfUp(n, prec === undefined ? 6 : +prec).toFixed(prec === undefined ? 6 : +prec); if (plus && n >= 0) s = '+' + s; break; }
+          case 's': s = toStr(v, line); if (prec !== undefined) s = s.slice(0, +prec); break;
+          case 'x': s = toInt(v).toString(16); break; case 'X': s = toInt(v).toString(16).toUpperCase(); break;
+          case 'o': s = toInt(v).toString(8); break; case 'b': s = toInt(v).toString(2); break;
+          case 'c': s = String.fromCharCode(toInt(v)); break;
+          case 'e': case 'E': { s = toNum(v).toExponential(prec === undefined ? 6 : +prec).replace(/e([+-])(\d)$/, 'e$1$2'); if (conv === 'E') s = s.toUpperCase(); break; }
+          default: s = toStr(v);
+        }
+        if (width && s.length < +width) {
+          if (left) s = s + (pad === '0' ? ' ' : pad).repeat(width - s.length);
+          else if (pad === '0' && /^[+-]/.test(s)) s = s[0] + '0'.repeat(width - s.length) + s.slice(1);
+          else s = pad.repeat(width - s.length) + s;
+        }
+        return s;
+      });
+    }
+    function printR(v, ind) {
+      if (!(v instanceof PArr)) return toStr(v);
+      const pad = ' '.repeat(ind);
+      let s = 'Array\n' + pad + '(\n';
+      for (const [k, x] of v.m) s += pad + '    [' + k + '] => ' + (x instanceof PArr ? printR(x, ind + 8) + '\n' : toStr(x) + '\n');
+      return s + pad + ')\n';
+    }
+    function needArr(v, fn, line) {
+      if (!(v instanceof PArr)) throw err(`${fn}(): Argument #1 harus berupa array, ${typeName(v)} diberikan`, line);
+      return v;
+    }
+
+    function callFn(node) {
+      const name = node.name, line = node.line, A = node.args;
+      const ev = i => (A[i] === undefined ? undefined : evalExpr(A[i]));
+      const need = (k) => { if (A.length < k) throw err(`ArgumentCountError: ${name}() butuh minimal ${k} argumen`, line); };
+      switch (name) {
+        case 'isset': return A.every(a => { const v = evalExpr(a, true); return v !== null && v !== undefined; });
+        case 'empty': { const v = evalExpr(A[0], true); return !toBool(v); }
+        case 'unset': for (const a of A) { if (a.type === 'var') delete vars[a.name]; else if (a.type === 'idx') { const b = evalExpr(a.obj, true); if (b instanceof PArr) b.del(evalExpr(a.key)); } } return null;
+        case 'count': case 'sizeof': { need(1); const v = ev(0); if (!(v instanceof PArr)) throw err(`count(): Argument #1 harus array, ${typeName(v)} diberikan`, line); return v.size; }
+        case 'strlen': need(1); return toStr(ev(0), line).length;
+        case 'strtoupper': return toStr(ev(0)).toUpperCase();
+        case 'strtolower': return toStr(ev(0)).toLowerCase();
+        case 'ucfirst': { const s = toStr(ev(0)); return s.charAt(0).toUpperCase() + s.slice(1); }
+        case 'ucwords': return toStr(ev(0)).replace(/(^|\s)(\S)/g, (m, a, b) => a + b.toUpperCase());
+        case 'strrev': return toStr(ev(0)).split('').reverse().join('');
+        case 'trim': return toStr(ev(0)).trim();
+        case 'str_repeat': { need(2); const c = toInt(ev(1), line); if (c < 0) throw err('str_repeat(): jumlah tidak boleh negatif', line); return toStr(ev(0)).repeat(c); }
+        case 'substr': { const s = toStr(ev(0)); let st = toInt(ev(1)); if (st < 0) st = Math.max(0, s.length + st); const lnArg = ev(2); if (lnArg === undefined || lnArg === null) return s.slice(st); let ln = toInt(lnArg); return ln < 0 ? s.slice(st, s.length + ln) : s.substr(st, ln); }
+        case 'strpos': { const s = toStr(ev(0)), f = toStr(ev(1)); const r = s.indexOf(f, A[2] ? toInt(ev(2)) : 0); return r < 0 ? false : r; }
+        case 'str_contains': return toStr(ev(0)).includes(toStr(ev(1)));
+        case 'str_replace': { const s = toStr(ev(2)); return s.split(toStr(ev(0))).join(toStr(ev(1))); }
+        case 'str_pad': { const s = toStr(ev(0)); const len = toInt(ev(1)); const p = A[2] ? toStr(ev(2)) : ' '; const type = A[3] ? toInt(ev(3)) : 1; if (len <= s.length || !p) return s; const total = len - s.length; const mk = k => p.repeat(Math.ceil(k / p.length)).slice(0, k); if (type === 0) return mk(total) + s; if (type === 2) { const l = Math.floor(total / 2); return mk(l) + s + mk(total - l); } return s + mk(total); }
+        case 'str_split': { const s = toStr(ev(0)); const k = A[1] ? toInt(ev(1)) : 1; const a = new PArr(); for (let i = 0; i < s.length; i += k) a.push(s.slice(i, i + k)); if (!s) a.push(''); return a; }
+        case 'implode': case 'join': { let g = ev(0), arr = ev(1); if (g instanceof PArr) { [g, arr] = [arr === undefined ? '' : arr, g]; } needArr(arr, name, line); return arr.values().map(x => toStr(x, line)).join(toStr(g)); }
+        case 'explode': { const d = toStr(ev(0)), s = toStr(ev(1)); if (!d) throw err('explode(): pemisah tidak boleh kosong', line); return PArr.from(s.split(d)); }
+        case 'array_sum': { const a = needArr(ev(0), name, line); return a.values().reduce((s, x) => s + toNum(x, line), 0); }
+        case 'array_product': { const a = needArr(ev(0), name, line); return a.values().reduce((s, x) => s * toNum(x, line), 1); }
+        case 'array_keys': return PArr.from(needArr(ev(0), name, line).keys());
+        case 'array_values': return PArr.from(needArr(ev(0), name, line).values());
+        case 'array_reverse': return PArr.from(needArr(ev(0), name, line).values().reverse());
+        case 'in_array': { const n = ev(0), a = needArr(ev(1), name, line); const strict = A[2] ? toBool(ev(2)) : false; return a.values().some(x => strict ? strictEq(x, n) : looseEq(x, n)); }
+        case 'array_search': { const n = ev(0), a = needArr(ev(1), name, line); for (const [k, x] of a.m) if (looseEq(x, n)) return k; return false; }
+        case 'array_key_exists': { const a = needArr(ev(1), name, line); return a.has(ev(0)); }
+        case 'range': { const s = toNum(ev(0)), e = toNum(ev(1)); let st = A[2] ? Math.abs(toNum(ev(2))) : 1; if (!st) st = 1; const a = new PArr(); if (s <= e) for (let x = s; x <= e + 1e-9; x += st) a.push(x); else for (let x = s; x >= e - 1e-9; x -= st) a.push(x); return a; }
+        case 'array_push': { need(2); const r = ref(A[0]); let a = r.get(false); if (!(a instanceof PArr)) throw err('array_push(): Argument #1 harus array', line); for (let i = 1; i < A.length; i++) a.push(copyVal(ev(i))); return a.size; }
+        case 'array_pop': { const r = ref(A[0]); const a = r.get(false); if (!(a instanceof PArr) || a.size === 0) return null; const ks = a.keys(); const k = ks[ks.length - 1]; const v = a.get(k); a.del(k); a.next = 0; for (const kk of a.keys()) if (typeof kk === 'number' && kk >= a.next) a.next = kk + 1; return v; }
+        case 'array_shift': { const r = ref(A[0]); const a = r.get(false); if (!(a instanceof PArr) || a.size === 0) return null; const ents = a.entries(); const v = ents[0][1]; const na = new PArr(); for (const [k, x] of ents.slice(1)) typeof k === 'number' ? na.push(x) : na.set(k, x); r.set(na); return v; }
+        case 'sort': case 'rsort': { const r = ref(A[0]); const a = r.get(false); if (!(a instanceof PArr)) throw err(name + '(): Argument #1 harus array', line); const v = a.values().sort((x, y) => cmp(x, y)); if (name === 'rsort') v.reverse(); r.set(PArr.from(v)); return true; }
+        case 'max': case 'min': { let v = A.length === 1 ? needArr(ev(0), name, line).values() : A.map((_, i) => ev(i)); if (!v.length) throw err(name + '(): array tidak boleh kosong', line); return v.reduce((m, x) => (name === 'max' ? cmp(x, m) > 0 : cmp(x, m) < 0) ? x : m); }
+        case 'abs': return Math.abs(toNum(ev(0), line));
+        case 'floor': return Math.floor(toNum(ev(0), line));
+        case 'ceil': return Math.ceil(toNum(ev(0), line));
+        case 'round': return roundHalfUp(toNum(ev(0), line), A[1] ? toInt(ev(1)) : 0);
+        case 'sqrt': return Math.sqrt(toNum(ev(0), line));
+        case 'pow': return Math.pow(toNum(ev(0), line), toNum(ev(1), line));
+        case 'intdiv': { const b = toInt(ev(1), line); if (b === 0) throw err('Division by zero', line); return Math.trunc(toInt(ev(0), line) / b); }
+        case 'fmod': return toNum(ev(0)) % toNum(ev(1));
+        case 'pi': return Math.PI;
+        case 'rand': case 'mt_rand': case 'random_int': { if (A.length >= 2) { const lo = toInt(ev(0)), hi = toInt(ev(1)); return lo + Math.floor(Math.random() * (hi - lo + 1)); } return Math.floor(Math.random() * 2147483647); }
+        case 'number_format': { need(1); return numberFormat(toNum(ev(0), line), A[1] ? toInt(ev(1)) : 0, A[2] !== undefined ? toStr(ev(2)) : '.', A[3] !== undefined ? toStr(ev(3)) : ','); }
+        case 'is_null': return ev(0) === null;
+        case 'is_numeric': { const v = ev(0); return typeof v === 'number' || isNumericStr(v); }
+        case 'is_int': case 'is_integer': { const v = ev(0); return typeof v === 'number' && Number.isInteger(v); }
+        case 'is_float': { const v = ev(0); return typeof v === 'number' && !Number.isInteger(v); }
+        case 'is_string': return typeof ev(0) === 'string';
+        case 'is_array': return ev(0) instanceof PArr;
+        case 'is_bool': return typeof ev(0) === 'boolean';
+        case 'intval': return toInt(ev(0), line);
+        case 'floatval': return toNum(ev(0), line);
+        case 'strval': return toStr(ev(0), line);
+        case 'gettype': { const t = typeName(ev(0)); return { int: 'integer', float: 'double', bool: 'boolean', null: 'NULL' }[t] || t; }
+        case 'sprintf': need(1); return sprintf(toStr(ev(0)), A.slice(1).map(a => evalExpr(a)), line);
+        case 'printf': { need(1); const s = sprintf(toStr(ev(0)), A.slice(1).map(a => evalExpr(a)), line); emit(s); return s.length; }
+        case 'print_r': { const s = printR(ev(0), 0); if (A[1] && toBool(ev(1))) return s; emit(s); return true; }
+        case 'var_dump': { for (let i = 0; i < A.length; i++) { const v = ev(i); emit(dump(v, 0)); } return null; }
+        case 'nl2br': return toStr(ev(0)).replace(/\n/g, '<br />\n');
+        case 'chr': return String.fromCharCode(toInt(ev(0)));
+        case 'ord': return toStr(ev(0)).charCodeAt(0) || 0;
+        case 'date': return toStr(ev(0));
+      }
+      throw err(`Call to undefined function ${node.name}() — fungsi ini tidak dikenal`, line);
+    }
+    function dump(v, ind) {
+      const p = ' '.repeat(ind);
+      if (v === null || v === undefined) return p + 'NULL\n';
+      if (typeof v === 'boolean') return p + `bool(${v})\n`;
+      if (typeof v === 'number') return p + (Number.isInteger(v) ? `int(${v})\n` : `float(${fmtFloat(v)})\n`);
+      if (typeof v === 'string') return p + `string(${v.length}) "${v}"\n`;
+      let s = p + `array(${v.size}) {\n`;
+      for (const [k, x] of v.m) s += p + '  [' + (typeof k === 'number' ? k : '"' + k + '"') + ']=>\n' + dump(x, ind + 2);
+      return s + p + '}\n';
+    }
+
+    const BRK = { t: 'break' }, CNT = { t: 'continue' };
+    function sig(type, level) { return { t: type, level }; }
+
+    function loopStat(node) {
+      let s = loopStats.get(node);
+      if (!s) { s = { type: node.type, line: node.line, iter: 0 }; loopStats.set(node, s); stats.loops.push(s); }
+      return s;
+    }
+    function enter() { stats.depth++; if (stats.depth > stats.maxDepth) stats.maxDepth = stats.depth; }
+    function leave() { stats.depth--; }
+    // hasil sinyal dari badan loop -> 'break' | 'continue' | sinyal-lanjut
+    function handle(s) {
+      if (!s) return null;
+      if (s.level > 1) return { pass: sig(s.t, s.level - 1) };
+      return s.t === 'break' ? 'break' : 'continue';
+    }
+
+    function execList(list) {
+      for (const st of list) { const s = exec(st); if (s) return s; }
+      return null;
+    }
+
+    function exec(node) {
+      curLine = node.line;
+      tick(node.line);
+      switch (node.type) {
+        case 'empty': return null;
+        case 'block': return execList(node.body);
+        case 'echo': for (const a of node.args) emit(toStr(evalExpr(a), node.line)); return null;
+        case 'expr': evalExpr(node.e); return null;
+        case 'if': {
+          if (toBool(evalExpr(node.cond))) return exec(node.then);
+          if (node.alt) return exec(node.alt);
+          return null;
+        }
+        case 'while': {
+          const ls = loopStat(node);
+          while (toBool(evalExpr(node.cond))) {
+            tick(node.line); stats.whileIter++; ls.iter++;
+            enter(); const s = exec(node.body); leave();
+            const h = handle(s);
+            if (h === 'break') break; if (h && h.pass) return h.pass;
+            curLine = node.line;
+          }
+          return null;
+        }
+        case 'dowhile': {
+          const ls = loopStat(node);
+          do {
+            tick(node.line); stats.doIter++; ls.iter++;
+            enter(); const s = exec(node.body); leave();
+            const h = handle(s);
+            if (h === 'break') break; if (h && h.pass) return h.pass;
+            curLine = node.line;
+          } while (toBool(evalExpr(node.cond)));
+          return null;
+        }
+        case 'for': {
+          const ls = loopStat(node);
+          for (const e of node.init) evalExpr(e);
+          for (;;) {
+            let ok = true;
+            for (let i = 0; i < node.cond.length; i++) { const v = evalExpr(node.cond[i]); if (i === node.cond.length - 1) ok = toBool(v); }
+            if (!ok) break;
+            tick(node.line); stats.forIter++; ls.iter++;
+            enter(); const s = exec(node.body); leave();
+            const h = handle(s);
+            if (h === 'break') break; if (h && h.pass) return h.pass;
+            curLine = node.line;
+            for (const e of node.upd) evalExpr(e);
+          }
+          return null;
+        }
+        case 'foreach': {
+          const ls = loopStat(node);
+          const subj = evalExpr(node.subject);
+          if (!(subj instanceof PArr)) { warn(`foreach() argument must be of type array, ${typeName(subj)} given`, node.line); return null; }
+          const refArr = node.byRef && node.subject.type === 'var' ? subj : null;
+          const ents = subj.entries();
+          for (const [k, v] of ents) {
+            tick(node.line); stats.foreachIter++; ls.iter++;
+            if (node.keyT) ref(node.keyT).set(k);
+            ref(node.valT).set(copyVal(v));
+            enter(); const s = exec(node.body); leave();
+            if (refArr && node.valT.type === 'var') refArr.set(k, vars[node.valT.name]);
+            const h = handle(s);
+            if (h === 'break') break; if (h && h.pass) return h.pass;
+          }
+          return null;
+        }
+        case 'switch': {
+          const v = evalExpr(node.subj);
+          let idx = node.cases.findIndex(c => c.test !== 'default' && looseEq(v, evalExpr(c.test)));
+          if (idx < 0) idx = node.cases.findIndex(c => c.test === 'default');
+          if (idx < 0) return null;
+          for (let i = idx; i < node.cases.length; i++) {
+            const s = execList(node.cases[i].body);
+            if (s) { if (s.level > 1) return sig(s.t, s.level - 1); return null; }
+          }
+          return null;
+        }
+        case 'break': stats.breakCount++; return sig('break', node.level);
+        case 'continue': stats.continueCount++; return sig('continue', node.level);
+        case 'exit': { if (node.arg) { const v = evalExpr(node.arg); if (typeof v === 'string') emit(v); } throw new ExitSignal(); }
+      }
+      throw err('Pernyataan tidak dikenal', node.line);
+    }
+
+    const result = { output: '', error: null, warnings, stats, vars };
+    try {
+      const toks = tokenize(code);
+      const ast = new Parser(toks).program();
+      const s = execList(ast);
+      if (s) throw new PhpError('fatal', `'${s.t}' dipakai di luar perulangan — ${s.t} hanya boleh berada di dalam for, while, do-while, foreach, atau switch`, curLine);
+    } catch (e) {
+      if (e instanceof ExitSignal) { /* selesai normal */ }
+      else if (e instanceof PhpError) result.error = { kind: e.kind, msg: e.message, line: e.line };
+      else if (e instanceof RangeError) result.error = { kind: 'fatal', msg: 'Program terlalu dalam/kompleks untuk dijalankan (' + e.message + ')', line: curLine };
+      else result.error = { kind: 'fatal', msg: 'Kesalahan internal: ' + (e && e.message), line: curLine };
+    }
+    stats.steps = steps;
+    result.output = out.join('');
+    return result;
+  }
+
+  const api = { run, tokenize, PhpError };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  else root.PHPMini = api;
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>window.CBT_Q = [{"id":"A1","sec":"A","type":"pg","q":"Perulangan yang paling tepat digunakan jika jumlah putarannya sudah diketahui sejak awal adalah…","o":["if","switch","for","echo","break"]},{"id":"A2","sec":"A","type":"pg","q":"Pada <code>for ($i = 1; $i &lt;= 5; $i++)</code>, bagian <code>$i++</code> disebut…","o":["inisialisasi","kondisi","update (increment)","deklarasi","perbandingan"]},{"id":"A3","sec":"A","type":"pg","q":"Perbedaan utama perulangan while dan do-while adalah…","o":["while hanya bisa digunakan untuk array","do-while mengecek kondisi di awal","while tidak bisa memakai break","do-while menjalankan badan loop minimal satu kali","keduanya selalu menghasilkan output yang sama"]},{"id":"A4","sec":"A","type":"pg","q":"Output dari kode berikut adalah…","code":"for ($i = 1; $i <= 3; $i++) {\n  echo $i;\n}","o":["1 2 3","123","0123","1234","3"]},{"id":"A5","sec":"A","type":"pg","q":"Berapa kali perulangan berikut dijalankan?","code":"for ($i = 0; $i < 10; $i += 2) {\n  // ...\n}","o":["4","10","6","5","2"]},{"id":"A6","sec":"A","type":"pg","q":"Apa yang terjadi jika baris <code>$stok--;</code> dihapus dari kode berikut?","code":"$stok = 5;\nwhile ($stok > 0) {\n  echo $stok;\n  $stok--;\n}","o":["terjadi infinite loop","loop berjalan 5 kali","muncul error sintaks","loop tidak berjalan sama sekali","stok menjadi negatif"]},{"id":"A7","sec":"A","type":"pg","q":"Keyword untuk menghentikan perulangan sebelum kondisinya bernilai false adalah…","o":["continue","stop","exit loop","end","break"]},{"id":"A8","sec":"A","type":"pg","q":"Keyword untuk melewati sisa perintah pada putaran ini, lalu lanjut ke putaran berikutnya, adalah…","o":["break","continue","skip","next","pass"]},{"id":"A9","sec":"A","type":"pg","q":"Perulangan foreach paling tepat digunakan untuk…","o":["menghitung mundur angka","mengolah setiap elemen array","membuat kondisi if","menghentikan program","mendeklarasikan fungsi"]},{"id":"A10","sec":"A","type":"pg","q":"Output dari kode berikut adalah…","code":"$i = 10;\ndo {\n  echo $i;\n  $i++;\n} while ($i < 5);","o":["tidak ada output","5","10","1011121314","error"]},{"id":"A11","sec":"A","type":"pg","q":"Output dari kode berikut adalah…","code":"$i = 10;\nwhile ($i < 5) {\n  echo $i;\n  $i++;\n}","o":["10","tidak ada output","5","infinite loop","error"]},{"id":"A12","sec":"A","type":"pg","q":"Output dari kode berikut adalah…","code":"for ($i = 5; $i >= 1; $i--) {\n  echo $i . \" \";\n}","o":["1 2 3 4 5","5 4 3 2 1 0","5 4 3 2 1","4 3 2 1","5"]},{"id":"A13","sec":"A","type":"pg","q":"Penulisan perulangan do-while yang benar adalah…","o":["<code>do { ... } while (kondisi);</code>","<code>do (kondisi) { ... }</code>","<code>while { ... } do (kondisi);</code>","<code>do { ... } until (kondisi);</code>","<code>do: ... endwhile;</code>"],"html":true},{"id":"A14","sec":"A","type":"pg","q":"Pada kode berikut, variabel <code>$i</code> berisi…","code":"$buah = [\"Apel\", \"Jeruk\", \"Mangga\"];\nforeach ($buah as $i => $b) {\n  // ...\n}","o":["nama buah","jumlah elemen","indeks 1, 2, 3","selalu 0","indeks 0, 1, 2"]},{"id":"A15","sec":"A","type":"pg","q":"Output dari kode berikut adalah…","code":"for ($i = 1; $i <= 10; $i++) {\n  if ($i == 4) break;\n  echo $i;\n}","o":["123","1234","4","12345678910","5678910"]},{"id":"A16","sec":"A","type":"pg","q":"Output dari kode berikut adalah…","code":"for ($i = 1; $i <= 5; $i++) {\n  if ($i == 3) continue;\n  echo $i;\n}","o":["12","345","1245","12345","3"]},{"id":"A17","sec":"A","type":"pg","q":"Berapa banyak tanda <code>*</code> yang dicetak oleh kode berikut?","code":"for ($i = 1; $i <= 3; $i++)\n  for ($j = 1; $j <= 4; $j++)\n    echo \"*\";","o":["7","3","4","12","16"]},{"id":"A18","sec":"A","type":"pg","q":"Jika break diletakkan di dalam loop bagian dalam pada perulangan bersarang, maka…","o":["semua loop berhenti","hanya loop dalam yang berhenti, loop luar tetap lanjut","hanya satu putaran yang dilewati","loop diulang dari awal","terjadi error"]},{"id":"A19","sec":"A","type":"pg","q":"Output dari kode berikut adalah…","code":"$total = 0;\nfor ($i = 1; $i <= 4; $i++) {\n  $total += $i;\n}\necho $total;","o":["4","24","10","6","15"]},{"id":"A20","sec":"A","type":"pg","q":"Kondisi yang tepat untuk mengecek apakah <code>$i</code> bilangan genap adalah…","o":["<code>$i / 2 == 0</code>","<code>$i % 2 == 1</code>","<code>$i * 2 == 0</code>","<code>$i == 2</code>","<code>$i % 2 == 0</code>"],"html":true},{"id":"B1","sec":"B","type":"isian","code":"for ($i = 2; $i <= 10; $i += 3) echo $i . \" \";"},{"id":"B2","sec":"B","type":"isian","code":"$n = 1;\nwhile ($n < 50) {\n  echo $n . \" \";\n  $n *= 3;\n}"},{"id":"B3","sec":"B","type":"isian","code":"$x = 5;\ndo {\n  echo $x . \" \";\n  $x -= 2;\n} while ($x > 0);"},{"id":"B4","sec":"B","type":"isian","code":"for ($i = 1; $i <= 10; $i++) {\n  if ($i % 3 != 0) continue;\n  echo $i . \" \";\n}"},{"id":"B5","sec":"B","type":"isian","code":"$h = 0;\nfor ($i = 1; $i <= 5; $i++) {\n  $h = $h + $i * 2;\n}\necho $h;"},{"id":"B6","sec":"B","type":"isian","code":"for ($i = 1; $i <= 3; $i++) {\n  for ($j = 1; $j <= $i; $j++) {\n    echo $j;\n  }\n  echo \"\\n\";\n}"},{"id":"B7","sec":"B","type":"isian","code":"$angka = [4, 7, 2, 9, 5];\n$max = $angka[0];\nforeach ($angka as $a) {\n  if ($a > $max) $max = $a;\n}\necho $max;"},{"id":"B8","sec":"B","type":"isian","code":"$i = 0;\nwhile (true) {\n  $i++;\n  if ($i == 2) continue;\n  if ($i > 4) break;\n  echo $i;\n}"},{"id":"B9","sec":"B","type":"isian","code":"$kata = \"LOOP\";\nfor ($i = strlen($kata) - 1; $i >= 0; $i--) {\n  echo $kata[$i];\n}"},{"id":"B10","sec":"B","type":"isian","code":"for ($i = 1; $i <= 3; $i++) {\n  for ($j = 1; $j <= 3; $j++) {\n    if ($j == 2) break;\n    echo $i . $j . \" \";\n  }\n}"},{"id":"C1","sec":"C","type":"kode","title":"Kelipatan 5","task":"Buat perulangan <b>for</b> yang menampilkan kelipatan 5 dari 5 sampai 50 dalam satu baris, dipisahkan spasi.","starter":"<?php\n// Tulis kodemu di bawah ini\n\n?>","reqs":["for","echoInLoop"]},{"id":"C2","sec":"C","type":"kode","title":"Rata-rata nilai","task":"Hitung rata-rata nilai pada array <code>$nilai</code> menggunakan <b>foreach</b>, lalu tampilkan dengan format <b>Rata-rata: …</b>","starter":"<?php\n$nilai = [78, 85, 90, 66, 81];\n\n// Tulis kodemu di bawah ini\n\n?>","reqs":["foreach"]},{"id":"C3","sec":"C","type":"kode","title":"Saldo jajan","task":"Saldo jajan awal 100000 dan setiap hari terpakai 15000. Dengan <b>while</b>, tampilkan sisa saldo setiap hari selama saldo masih cukup. Setelah loop, tampilkan jumlah hari dan sisa saldo sesuai format output.","starter":"<?php\n$saldo = 100000;\n$hari = 0;\n\n// Tulis kodemu di bawah ini\n\n?>","reqs":["while","echoInLoop"]},{"id":"C4","sec":"C","type":"kode","title":"Tabel perkalian","task":"Buat tabel perkalian 1 sampai 5 menggunakan <b>perulangan bersarang</b>. Setiap baris berisi hasil kali satu angka, dipisahkan spasi.","starter":"<?php\n// Tulis kodemu di bawah ini\n\n?>","reqs":["nested","echoInLoop"]},{"id":"C5","sec":"C","type":"kode","title":"Prima setelah 100","task":"Dengan <b>while</b> dan <b>break</b>, cari bilangan prima pertama yang lebih besar dari 100.","starter":"<?php\n$n = 101;\n\n// Tulis kodemu di bawah ini\n\n?>","reqs":["while","break"]},{"id":"C6","sec":"C","type":"kode","title":"Lewati kelipatan 4 dan 5","task":"Tampilkan angka 1 sampai 30 dalam satu baris, tetapi lewati semua kelipatan 4 dan kelipatan 5 menggunakan <b>continue</b>.","starter":"<?php\n// Tulis kodemu di bawah ini\n\n?>","reqs":["continue","echoInLoop"]}];</script>
+<script>window.CBT_KEY = "CVItHE5VXVxQMV4PVl1DUjNDThdfQ00xRlJWHEBNLkVQSl8BTi5ZUkhAQA8tWE1KRlxObFRNVUFeUi0UTlVeXFAxXR1OVV1cUDFdHE5VXlxQMV0fTlVdXFAxXR5OVV9cUDFdGU5VW1xQMV0YTlVfXFAxXRtOVV1cUDFdGk5VXFxQMV0VTlVeXFAxXRROVV1cUDFeHU5VW1xQMl0PVk1dUEdQVA9ATS1CUEpOHExcT0lSQlsPQE0tQ1BKThhMXE9BUFxOb1hNVVJBUFoNVU1DUjBFThdOXF9SXlIuG05VTUEuHl0fMAFeQkFSQA8uWE1KUElOAU4tV1JIUl0eWE1DUjBJThdOPyA/PlJADy5eX1JIUl0cTF1eUEFBTgFOLF5SSFJZDV1fT0FHUF4dTF1aUEFATB5ZT1tAUkRZDVlfT1JeUi8fTlVNIhMEDQAeDhsRSFBUHU5DTTNBUlYPJA4dGVJBVg0fBhwRUkhZHVxfMx46ER5ETF1VUAEZH0xMWF9AQkAwQyQOHRlSQ1YNHwYcEVJFWR1cXzMeOhEeRExbVVABGR9MTFtfQEJAMEMkDh0ZUkVWDR8GHBFSQlkdXF8zHjoRHkRMWVVQARkfTExeX0BCQDBDLxoEBQJQGUMYGgRQRFAETB4GQ1ABGR9MTF5fQEJATgFOLFtSSFJdDV5PXFBGUFkNMAFdUEZQWg1UT15AUiwCHkxZT0lSQV4NXVpPLBxETBVMXl1QQ0ZMH1xPMx5HUF0dTF5aUEBATB9ZTzMeUFxObllNVVIwGQBMAggOHlIAHkQBDk8AFwIYTAEOTwMXBAlBDQdPQUJAVg1dX15SXlIvG05VTUFSQkweTFlPR1JJTBxdT15DUkFYDV1YT0FKUF0UTF1eUEBCTB9fT11GUkJbDV5WT1IP";</script>
+<script>
+(function () {
+'use strict';
+const CFG = window.CBT_CONFIG;
+const Q = window.CBT_Q;
+const QMAP = Object.fromEntries(Q.map(q => [q.id, q]));
+const SEC = { A: 'Pilihan ganda', B: 'Tebak output', C: 'Praktik koding' };
+
+/* ---------- kunci (disamarkan) ---------- */
+const KEY = (function () {
+  const raw = atob(window.CBT_KEY); const k = 'rpl-loop'; let s = '';
+  for (let i = 0; i < raw.length; i++) s += String.fromCharCode(raw.charCodeAt(i) ^ k.charCodeAt(i % k.length));
+  return JSON.parse(decodeURIComponent(escape(s)));
+})();
+
+const REQ = {
+  for: { label: 'Menggunakan perulangan for', test: s => s.forIter > 0 },
+  while: { label: 'Menggunakan perulangan while', test: s => s.whileIter > 0 },
+  foreach: { label: 'Menggunakan foreach', test: s => s.foreachIter > 0 },
+  break: { label: 'break benar-benar dijalankan', test: s => s.breakCount > 0 },
+  continue: { label: 'continue benar-benar dijalankan', test: s => s.continueCount > 0 },
+  echoInLoop: { label: 'Output dicetak dari dalam perulangan', test: s => s.echoInLoop > 0 },
+  nested: { label: 'Menggunakan perulangan bersarang', test: s => s.maxDepth >= 2 },
+};
+
+/* ---------- utilitas ---------- */
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { } },
+  del(k) { try { localStorage.removeItem(k); } catch (e) { } }
+};
+function hash53(str, seed = 0) {
+  let h1 = 0xdeadbeef ^ seed, h2 = 0x41c6ce57 ^ seed;
+  for (let i = 0; i < str.length; i++) { const ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return 4294967296 * (2097151 & h2) + (h1 >>> 0);
+}
+function rng(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function shuffle(arr, r) { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+const fmtTime = s => { s = Math.max(0, Math.floor(s)); const h = Math.floor(s / 3600), m = Math.floor(s % 3600 / 60), x = s % 60; return (h ? h + ':' : '') + String(m).padStart(2, '0') + ':' + String(x).padStart(2, '0'); };
+const fmtDate = t => new Date(t).toLocaleString('id-ID', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+function toast(msg, ms = 2600) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; t.setAttribute('role', 'status'); document.body.appendChild(t); setTimeout(() => t.remove(), ms); }
+function hlCode(src) {
+  const re = /(\/\*[\s\S]*?(?:\*\/|$)|\/\/[^\n]*|#[^\n]*)|("(?:\\[\s\S]|[^"\\])*"?|'(?:\\[\s\S]|[^'\\])*'?)|(\$[A-Za-z_]\w*)|(<\?php|\?>)|\b(\d+(?:\.\d+)?)\b|\b(for|foreach|while|do|as|if|else|elseif|break|continue|echo|print|true|false|null|switch|case|default|array)\b|\b([a-z_]\w*)(?=\s*\()/gi;
+  let out = '', last = 0, m;
+  while ((m = re.exec(src))) {
+    out += esc(src.slice(last, m.index));
+    const cls = m[1] ? 't-com' : m[2] ? 't-str' : m[3] ? 't-var' : m[4] ? 't-tag' : m[5] ? 't-num' : m[6] ? 't-kw' : 't-fn';
+    out += `<span class="${cls}">${esc(m[0])}</span>`; last = re.lastIndex; if (!m[0].length) re.lastIndex++;
+  }
+  return out + esc(src.slice(last)) + '\n';
+}
+const normOut = s => String(s).replace(/\r\n?/g, '\n').replace(/<br\s*\/?>/gi, '\n').split('\n').map(l => l.replace(/\s+$/, '')).join('\n').replace(/^\n+|\s+$/g, '');
+const normIsian = s => String(s || '').replace(/^\s*["'`]|["'`]\s*$/g, '').replace(/\s+/g, ' ').trim();
+
+async function saveFile(filename, text) {
+  try {
+    if (window.claude && typeof window.claude.use === 'function') {
+      const dl = await window.claude.use('downloads');
+      if (dl) { await dl.save({ filename, data: text }); toast('File disimpan'); return true; }
+    }
+  } catch (e) { if (e && e.code === 'declined') return false; }
+  try {
+    const blob = new Blob([text], { type: filename.endsWith('.csv') ? 'text/csv' : 'application/json' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename;
+    document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    return true;
+  } catch (e) { toast('Gagal menyimpan file'); return false; }
+}
+
+/* ---------- penilaian ---------- */
+function grade(answers) {
+  const det = {}; const sc = { A: 0, B: 0, C: 0 }; const max = { A: 0, B: 0, C: 0 };
+  Q.forEach(q => {
+    const w = CFG.bobot[q.sec]; max[q.sec] += w;
+    const a = answers[q.id];
+    let pts = 0, status = 'kosong', extra = null;
+    if (q.type === 'pg') {
+      if (a !== undefined && a !== null) { const ok = a === KEY[q.id]; pts = ok ? w : 0; status = ok ? 'benar' : 'salah'; }
+    } else if (q.type === 'isian') {
+      if (a && normIsian(a)) { const ok = normIsian(a) === normIsian(KEY[q.id]); pts = ok ? w : 0; status = ok ? 'benar' : 'salah'; }
+    } else {
+      const starterSame = !a || normOut(a) === normOut(q.starter);
+      if (!starterSame) {
+        const r = PHPMini.run(a, { maxSteps: 1500000 });
+        const outOk = !r.error && normOut(r.output) === normOut(KEY[q.id]);
+        const reqMiss = q.reqs.filter(k => !REQ[k].test(r.stats));
+        if (outOk && !reqMiss.length) { pts = w; status = 'benar'; }
+        else if (outOk) { pts = Math.round(w * 0.4); status = 'sebagian'; }
+        else status = 'salah';
+        extra = { output: r.output.slice(0, 2000), error: r.error ? r.error.msg + ' (baris ' + r.error.line + ')' : null, reqMiss };
+      }
+    }
+    sc[q.sec] += pts; det[q.id] = { pts, status, extra };
+  });
+  const total = sc.A + sc.B + sc.C, maxT = max.A + max.B + max.C;
+  return { sc, max, total, nilai: Math.round(total / maxT * 100), det };
+}
+const sigOf = r => hash53([r.siswa.nama, r.siswa.kelas, r.siswa.absen, r.mulai, r.selesai, JSON.stringify(r.jawaban), r.pelanggaran.keluar, CFG.token].join('|'), 46).toString(36).toUpperCase().slice(-8).padStart(8, '0');
+
+/* =====================================================================
+   HALAMAN MASUK
+   ===================================================================== */
+function renderLogin(prefill) {
+  const sesi = store.get('cbt:sesi', null);
+  if (sesi && !sesi.done) return renderExam();
+  const last = store.get('cbt:hasil', null);
+  if (last) return renderResult(last);
+  const p = prefill || {};
+  $('#app').innerHTML = `
+  <div class="login">
+    <section class="login-side">
+      <div>
+        ${CFG.sekolah ? `<div class="school">${esc(CFG.sekolah)}</div>` : '<div class="school">Computer Based Test</div>'}
+        <h1>${esc(CFG.judul)}</h1>
+        <p>${esc(CFG.mapel)} · Kelas XI RPL</p>
+      </div>
+      <div class="facts">
+        <div><b>36</b><span>soal</span></div>
+        <div><b>${CFG.durasiMenit}</b><span>menit</span></div>
+        <div><b>${CFG.kkm}</b><span>KKM</span></div>
+      </div>
+      <div class="rules">
+        <b>Tata tertib</b>
+        <ol>
+          <li>Bagian A: 20 soal pilihan ganda. Bagian B: 10 soal tebak output. Bagian C: 6 soal praktik koding.</li>
+          <li>Jawaban tersimpan otomatis. Jika halaman tertutup, buka lagi file ini di perangkat yang sama untuk melanjutkan.</li>
+          <li>Setiap kali keluar dari halaman ini akan tercatat dan terlihat oleh guru.</li>
+          <li>Setelah selesai, unduh file hasil dan kirimkan ke guru.</li>
+        </ol>
+      </div>
+    </section>
+    <section class="login-form">
+      <form class="form" id="f-login" novalidate>
+        <h2>Masuk ke Latihan Soal</h2>
+        <div class="field"><label for="nama">Nama lengkap</label><input id="nama" autocomplete="off" maxlength="60" value="${esc(p.nama || '')}" required></div>
+        <div class="row2">
+          <div class="field"><label for="kelas">Kelas</label><select id="kelas">${CFG.kelasList.map(k => `<option ${p.kelas === k ? 'selected' : ''}>${esc(k)}</option>`).join('')}</select></div>
+          <div class="field"><label for="absen">No. absen</label><input id="absen" inputmode="numeric" maxlength="3" value="${esc(p.absen || '')}" required></div>
+        </div>
+        <div class="field"><label for="token">Token Latihan Soal</label><input id="token" autocomplete="off" autocapitalize="characters" maxlength="20" placeholder="dibacakan oleh guru" required></div>
+        <div class="err" id="err" role="alert"></div>
+        <button class="btn btn-primary" type="submit">Mulai Latihan Soal</button>
+        <div class="form-foot"><span>Durasi ${CFG.durasiMenit} menit sejak tombol ditekan</span><button type="button" class="link" id="to-guru">Mode guru</button></div>
+      </form>
+    </section>
+  </div>`;
+  $('#f-login').addEventListener('submit', e => {
+    e.preventDefault();
+    const nama = $('#nama').value.trim().replace(/\s+/g, ' '), kelas = $('#kelas').value, absen = $('#absen').value.trim(), token = $('#token').value.trim();
+    const err = $('#err');
+    if (nama.length < 3) { err.textContent = 'Tulis nama lengkapmu.'; $('#nama').focus(); return; }
+    if (!/^\d{1,3}$/.test(absen)) { err.textContent = 'Nomor absen harus berupa angka.'; $('#absen').focus(); return; }
+    if (token.toUpperCase() !== String(CFG.token).toUpperCase()) { err.textContent = 'Token salah. Tanyakan token kepada guru.'; $('#token').focus(); return; }
+    startExam({ nama, kelas, absen: String(parseInt(absen, 10)) });
+  });
+  $('#to-guru').addEventListener('click', askPin);
+}
+
+/* =====================================================================
+   UJIAN
+   ===================================================================== */
+let S = null, tick = null;
+function startExam(siswa) {
+  const r = rng(hash53(siswa.nama.toLowerCase() + '|' + siswa.kelas + '|' + siswa.absen + '|' + Date.now()));
+  const order = [];
+  ['A', 'B', 'C'].forEach(sec => { const ids = Q.filter(q => q.sec === sec).map(q => q.id); order.push(...(CFG.acakSoal ? shuffle(ids, r) : ids)); });
+  const optOrder = {};
+  Q.filter(q => q.type === 'pg').forEach(q => { const idx = q.o.map((_, i) => i); optOrder[q.id] = CFG.acakOpsi ? shuffle(idx, r) : idx; });
+  S = { siswa, mulai: Date.now(), order, optOrder, jawaban: {}, ragu: {}, idx: 0, keluar: 0, tempel: 0, done: false };
+  saveS();
+  renderExam();
+}
+const saveS = () => store.set('cbt:sesi', S);
+const remaining = () => CFG.durasiMenit * 60 - (Date.now() - S.mulai) / 1000;
+const isAnswered = id => { const a = S.jawaban[id]; const q = QMAP[id]; if (q.type === 'pg') return a !== undefined && a !== null; if (q.type === 'isian') return !!(a && a.trim()); return !!a && normOut(a) !== normOut(q.starter); };
+
+function renderExam() {
+  S = S || store.get('cbt:sesi', null);
+  if (!S) return renderLogin();
+  if (remaining() <= 0) return finish(true);
+  $('#app').innerHTML = `
+  <header class="topbar"><div class="topbar-in">
+    <span class="title">${esc(CFG.judul)}</span>
+    <span class="who">${esc(S.siswa.nama)} · ${esc(S.siswa.kelas)} · Absen ${esc(S.siswa.absen)}</span>
+    <span class="sp"></span>
+    <button class="btn btn-nav-toggle" id="nav-open" aria-label="Daftar soal">Daftar soal</button>
+    <span class="timer" id="timer" aria-label="Sisa waktu" role="timer">--:--</span>
+  </div></header>
+  <main class="exam">
+    <section class="qcard" id="qcard" aria-live="polite"></section>
+    <aside class="side" id="side">
+      <div class="navcard">
+        <h3>Daftar soal</h3>
+        <div class="progress" id="progress"></div>
+        ${['A', 'B', 'C'].map(sec => `<div><div class="sec-lbl">Bagian ${sec} · ${SEC[sec]}</div><div class="grid">${S.order.map((id, i) => QMAP[id].sec === sec ? `<button class="nb" data-i="${i}">${i + 1}</button>` : '').join('')}</div></div>`).join('')}
+        <div class="legend"><span><i class="a"></i>Dijawab</span><span><i class="r"></i>Ragu-ragu</span><span><i></i>Belum</span></div>
+        <button class="btn btn-amber" id="btn-finish">Selesaikan Latihan Soal</button>
+        <button class="btn btn-line hide" id="nav-close">Tutup</button>
+      </div>
+    </aside>
+  </main>`;
+  document.querySelectorAll('.nb').forEach(b => b.addEventListener('click', () => { go(+b.dataset.i); closeNav(); }));
+  $('#btn-finish').addEventListener('click', confirmFinish);
+  $('#nav-open').addEventListener('click', () => { $('#side').classList.add('open'); $('#nav-close').classList.remove('hide'); });
+  $('#nav-close').addEventListener('click', closeNav);
+  $('#side').addEventListener('click', e => { if (e.target.id === 'side') closeNav(); });
+  renderQ(); refreshNav(); runTimer();
+}
+function closeNav() { $('#side').classList.remove('open'); $('#nav-close').classList.add('hide'); }
+function go(i) { saveCurrent(); S.idx = Math.max(0, Math.min(S.order.length - 1, i)); saveS(); renderQ(); refreshNav(); window.scrollTo({ top: 0 }); }
+
+function refreshNav() {
+  let ans = 0, ragu = 0;
+  document.querySelectorAll('.nb').forEach(b => {
+    const id = S.order[+b.dataset.i]; const a = isAnswered(id), r = !!S.ragu[id];
+    if (a) ans++; if (r) ragu++;
+    b.className = 'nb' + (r ? ' ragu' : a ? ' ans' : '');
+    b.setAttribute('aria-current', +b.dataset.i === S.idx);
+    b.setAttribute('aria-label', `Soal ${+b.dataset.i + 1}${r ? ', ragu-ragu' : a ? ', sudah dijawab' : ', belum dijawab'}`);
+  });
+  $('#progress').innerHTML = `<b>${ans}</b> dari ${S.order.length} soal dijawab${ragu ? ` · ${ragu} ragu-ragu` : ''}`;
+}
+
+function runTimer() {
+  clearInterval(tick);
+  const upd = () => {
+    const r = remaining(); const el = $('#timer'); if (!el) return clearInterval(tick);
+    el.textContent = fmtTime(r);
+    el.className = 'timer' + (r < 300 ? ' crit' : r < 600 ? ' low' : '');
+    if (r <= 0) { clearInterval(tick); saveCurrent(); finish(true); }
+  };
+  upd(); tick = setInterval(upd, 1000);
+}
+
+function renderQ() {
+  const id = S.order[S.idx], q = QMAP[id], n = S.idx + 1, w = CFG.bobot[q.sec];
+  let body = '';
+  if (q.type === 'pg') {
+    body = `<p class="qtext">${q.q}</p>${q.code ? `<pre class="codeblk">${hlCode(q.code)}</pre>` : ''}
+      <div class="opts" role="radiogroup" aria-label="Pilihan jawaban">${S.optOrder[id].map((oi, k) => `<button class="opt" role="radio" data-oi="${oi}" aria-checked="${S.jawaban[id] === oi}"><span class="ltr">${'abcde'[k]}</span><span>${q.html ? q.o[oi] : esc(q.o[oi])}</span></button>`).join('')}</div>`;
+  } else if (q.type === 'isian') {
+    body = `<p class="qtext">Tuliskan output dari potongan kode berikut.</p><pre class="codeblk">${hlCode(q.code)}</pre>
+      <div class="ans-area"><label for="isian">Jawaban (output program)</label>
+      <textarea id="isian" rows="2" spellcheck="false" autocomplete="off">${esc(S.jawaban[id] || '')}</textarea>
+      <small>Tulis persis seperti yang tampil di layar. Jika output lebih dari satu baris, boleh dipisahkan dengan spasi.</small></div>`;
+  } else {
+    const code = S.jawaban[id] != null ? S.jawaban[id] : q.starter;
+    body = `<div><span class="lbl">${esc(q.title)}</span><p class="qtext">${q.task}</p></div>
+      <div><span class="lbl">Output yang diharapkan</span><pre class="outbox">${esc(normOut(KEY[id]))}</pre></div>
+      <div><span class="lbl">Syarat</span><ul class="reqs">${q.reqs.map(r => `<li>${REQ[r].label}</li>`).join('')}</ul></div>
+      <div class="win">
+        <div class="win-top"><i></i><i></i><i></i><span>soal-${n}.php</span></div>
+        <div class="editor"><div class="gutter" id="gutter" aria-hidden="true"></div><div class="code-area"><pre id="hl" aria-hidden="true"></pre><textarea id="code" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-label="Editor kode PHP. Tekan Esc lalu Tab untuk keluar dari editor."></textarea></div></div>
+        <div class="win-bar"><button class="btn btn-run" id="btn-run">▶ Jalankan</button><span class="sp"></span><button class="btn btn-soft" id="btn-reset">Kode awal</button></div>
+      </div>
+      <div class="console"><div class="console-head"><span class="lbl">Output program</span></div><pre id="out"><span class="empty">Tekan Jalankan untuk mencoba kodemu. Jawaban dinilai otomatis saat ujian diselesaikan.</span></pre></div>`;
+    setTimeout(() => { const ta = $('#code'); ta.value = code; setupEditor(ta); }, 0);
+  }
+  $('#qcard').innerHTML = `
+    <div class="qhead"><span class="qnum">Soal ${n}</span><span class="chip">Bagian ${q.sec} · ${SEC[q.sec]}</span><span class="chip pts">${w} poin</span></div>
+    ${body}
+    <div class="qfoot">
+      <button class="btn btn-line" id="prev" ${S.idx === 0 ? 'disabled' : ''}>← Sebelumnya</button>
+      <button class="btn btn-line btn-ragu" id="ragu" aria-pressed="${!!S.ragu[id]}">Ragu-ragu</button>
+      <span class="sp"></span>
+      ${S.idx === S.order.length - 1 ? '<button class="btn btn-amber" id="last-finish">Selesaikan ujian</button>' : '<button class="btn btn-primary" id="next">Berikutnya →</button>'}
+    </div>`;
+  document.querySelectorAll('.opt').forEach(o => o.addEventListener('click', () => {
+    const oi = +o.dataset.oi; S.jawaban[id] = S.jawaban[id] === oi ? null : oi;
+    document.querySelectorAll('.opt').forEach(x => x.setAttribute('aria-checked', +x.dataset.oi === S.jawaban[id]));
+    saveS(); refreshNav();
+  }));
+  const is = $('#isian');
+  if (is) { is.addEventListener('input', () => { S.jawaban[id] = is.value; saveS(); refreshNav(); }); guardPaste(is); }
+  $('#prev').addEventListener('click', () => go(S.idx - 1));
+  const nx = $('#next'); if (nx) nx.addEventListener('click', () => go(S.idx + 1));
+  const lf = $('#last-finish'); if (lf) lf.addEventListener('click', confirmFinish);
+  $('#ragu').addEventListener('click', e => { S.ragu[id] = !S.ragu[id]; e.currentTarget.setAttribute('aria-pressed', S.ragu[id]); saveS(); refreshNav(); });
+  if (q.type === 'kode') {
+    setTimeout(() => {
+      $('#btn-run').addEventListener('click', runCode);
+      $('#btn-reset').addEventListener('click', () => confirmSheet('Kembalikan kode awal?', 'Kode yang sudah kamu tulis di soal ini akan dihapus.', 'Kembalikan', () => { const ta = $('#code'); ta.value = q.starter; S.jawaban[id] = q.starter; saveS(); syncEditor(); refreshNav(); }));
+    }, 0);
+  }
+}
+function saveCurrent() {
+  if (!S) return; const id = S.order[S.idx]; const q = QMAP[id];
+  if (q.type === 'kode' && $('#code')) S.jawaban[id] = $('#code').value;
+  if (q.type === 'isian' && $('#isian')) S.jawaban[id] = $('#isian').value;
+  saveS();
+}
+function guardPaste(el) {
+  el.addEventListener('paste', e => { e.preventDefault(); S.tempel++; saveS(); toast('Menempel teks dari luar tidak diizinkan saat ujian.'); });
+  el.addEventListener('drop', e => e.preventDefault());
+}
+
+/* ---------- editor kode ---------- */
+let escArmed = false, saveTimer = null;
+function syncEditor() {
+  const ta = $('#code'); if (!ta) return;
+  $('#hl').innerHTML = hlCode(ta.value);
+  const n = ta.value.split('\n').length; let g = ''; for (let i = 1; i <= n; i++) g += `<div>${i}</div>`;
+  $('#gutter').innerHTML = g; syncScroll();
+}
+function syncScroll() { const ta = $('#code'), hl = $('#hl'); if (!ta) return; hl.scrollTop = ta.scrollTop; hl.scrollLeft = ta.scrollLeft; $('#gutter').scrollTop = ta.scrollTop; }
+function setupEditor(ta) {
+  syncEditor(); guardPaste(ta);
+  ta.addEventListener('input', () => { syncEditor(); clearTimeout(saveTimer); saveTimer = setTimeout(() => { S.jawaban[S.order[S.idx]] = ta.value; saveS(); refreshNav(); }, 300); });
+  ta.addEventListener('scroll', syncScroll);
+  ta.addEventListener('keydown', e => {
+    const v = ta.value, s = ta.selectionStart, en = ta.selectionEnd;
+    if (e.key === 'Escape') { escArmed = true; return; }
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); runCode(); return; }
+    if (e.key === 'Tab') {
+      if (escArmed) { escArmed = false; return; }
+      e.preventDefault();
+      const ls = v.lastIndexOf('\n', s - 1) + 1;
+      if (e.shiftKey || s !== en) {
+        const le = v.indexOf('\n', en - (en > s && v[en - 1] === '\n' ? 1 : 0)); const end = le < 0 ? v.length : le;
+        const nb = v.slice(ls, end).split('\n').map(l => e.shiftKey ? l.replace(/^ {1,2}/, '') : '  ' + l).join('\n');
+        ins(ta, ls, end, nb, ls, ls + nb.length);
+      } else ins(ta, s, en, '  ', s + 2, s + 2);
+      return;
+    }
+    escArmed = false;
+    if (e.key === 'Enter' && !e.shiftKey && !e.altKey) {
+      e.preventDefault();
+      const ls = v.lastIndexOf('\n', s - 1) + 1; const line = v.slice(ls, s);
+      let ind = line.match(/^\s*/)[0]; const opens = /[{(\[:]\s*$/.test(line); if (opens) ind += '  ';
+      if (opens && /^\s*[}\])]/.test(v.slice(en).split('\n')[0])) ins(ta, s, en, '\n' + ind + '\n' + ind.slice(2), s + 1 + ind.length, s + 1 + ind.length);
+      else ins(ta, s, en, '\n' + ind, s + 1 + ind.length, s + 1 + ind.length);
+      return;
+    }
+    if (e.key === '}' && s === en) {
+      const ls = v.lastIndexOf('\n', s - 1) + 1; const before = v.slice(ls, s);
+      if (/^\s+$/.test(before) && before.length >= 2) { e.preventDefault(); ins(ta, ls, s, before.slice(2) + '}', ls + before.length - 1, ls + before.length - 1); }
+    }
+  });
+}
+function ins(ta, a, b, text, sa, sb) {
+  ta.focus(); ta.setSelectionRange(a, b);
+  let ok = false; try { ok = document.execCommand('insertText', false, text); } catch (e) { }
+  if (!ok || ta.value.slice(a, a + text.length) !== text) ta.setRangeText(text, a, b, 'end');
+  ta.setSelectionRange(sa, sb); ta.dispatchEvent(new Event('input'));
+}
+function runCode() {
+  const ta = $('#code'); if (!ta) return;
+  S.jawaban[S.order[S.idx]] = ta.value; saveS(); refreshNav();
+  const r = PHPMini.run(ta.value);
+  let h = r.output ? esc(r.output.slice(0, 5000)) : '';
+  const seen = new Set();
+  r.warnings.forEach(w => { const k = w.msg + w.line; if (seen.has(k)) return; seen.add(k); h += `<span class="w">Warning: ${esc(w.msg)} pada baris ${w.line}</span>`; });
+  if (r.error) h += `<span class="e">${r.error.kind === 'parse' ? 'Parse error' : r.error.kind === 'timeout' ? 'Program dihentikan' : 'Fatal error'}: ${esc(r.error.msg)}${r.error.line ? ' (baris ' + r.error.line + ')' : ''}</span>`;
+  $('#out').innerHTML = h || '<span class="empty">Program selesai tanpa output.</span>';
+}
+
+/* ---------- pelanggaran ---------- */
+document.addEventListener('visibilitychange', () => {
+  if (!S || S.done || !$('#qcard')) return;
+  if (document.visibilityState === 'hidden') { S.keluar++; saveS(); }
+  else if (S.keluar > 0) toast(`Kamu keluar dari halaman ujian (${S.keluar}×). Tercatat dan terlihat oleh guru.`, 4000);
+});
+
+/* ---------- selesai ---------- */
+function confirmFinish() {
+  saveCurrent();
+  const kosong = S.order.filter(id => !isAnswered(id)).length, ragu = S.order.filter(id => S.ragu[id]).length;
+  confirmSheet('Selesaikan ujian?', `${kosong ? `<b>${kosong} soal belum dijawab.</b> ` : 'Semua soal sudah dijawab. '}${ragu ? `${ragu} soal masih ditandai ragu-ragu. ` : ''}Setelah diselesaikan, jawaban tidak bisa diubah lagi.`, 'Ya, selesaikan', () => finish(false));
+}
+function finish(auto) {
+  clearInterval(tick);
+  S = S || store.get('cbt:sesi', null); if (!S) return renderLogin();
+  const selesai = Math.min(Date.now(), S.mulai + CFG.durasiMenit * 60 * 1000);
+  const jawaban = {}; Q.forEach(q => { if (S.jawaban[q.id] !== undefined && S.jawaban[q.id] !== null) jawaban[q.id] = S.jawaban[q.id]; });
+  const res = { app: 'cbt-perulangan-php', v: 1, judul: CFG.judul, siswa: S.siswa, mulai: S.mulai, selesai, otomatis: !!auto, pelanggaran: { keluar: S.keluar, tempel: S.tempel }, urutan: S.order, jawaban };
+  res.kode = sigOf(res);
+  const g = grade(jawaban); res.nilai = g.nilai; res.skor = g.sc;
+  const riwayat = store.get('cbt:riwayat', []); riwayat.push(res); store.set('cbt:riwayat', riwayat);
+  store.set('cbt:hasil', res); store.del('cbt:sesi'); S = null;
+  renderResult(res, auto);
+}
+const fileName = r => `Hasil_${r.siswa.kelas.replace(/\s+/g, '-')}_${String(r.siswa.absen).padStart(2, '0')}_${r.siswa.nama.replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '')}.json`;
+
+function renderResult(res, auto) {
+  const g = grade(res.jawaban);
+  $('#app').innerHTML = `
+  <div class="center"><section class="result">
+    <div><span class="chip">${auto ? 'Waktu habis — jawaban dikumpulkan otomatis' : 'Ujian selesai'}</span></div>
+    <h2>Terima kasih, ${esc(res.siswa.nama.split(' ')[0])}</h2>
+    ${CFG.tampilkanNilai ? `
+      <div class="score-big"><b>${g.nilai}</b><span class="badge ${g.nilai >= CFG.kkm ? 'ok' : 'no'}">${g.nilai >= CFG.kkm ? 'Tuntas' : 'Belum tuntas'}</span></div>
+      <div class="parts">
+        <div><span>A · Pilihan ganda</span><b>${g.sc.A}/${g.max.A}</b></div>
+        <div><span>B · Tebak output</span><b>${g.sc.B}/${g.max.B}</b></div>
+        <div><span>C · Praktik koding</span><b>${g.sc.C}/${g.max.C}</b></div>
+      </div>` : '<p>Nilaimu akan diumumkan oleh guru.</p>'}
+    <dl class="kv">
+      <dt>Nama</dt><dd>${esc(res.siswa.nama)}</dd>
+      <dt>Kelas / absen</dt><dd>${esc(res.siswa.kelas)} / ${esc(res.siswa.absen)}</dd>
+      <dt>Dikumpulkan</dt><dd>${fmtDate(res.selesai)}</dd>
+      <dt>Kode verifikasi</dt><dd class="sigcode">${res.kode}</dd>
+    </dl>
+    <div class="note"><b>Langkah terakhir:</b> tekan <i>Unduh file hasil</i>, lalu kirimkan file tersebut kepada guru sesuai instruksi di kelas.</div>
+    <div class="actions">
+      <button class="btn btn-primary" id="dl">Unduh file hasil</button>
+      <button class="btn btn-line" id="done">Selesai</button>
+    </div>
+  </section></div>`;
+  $('#dl').addEventListener('click', () => saveFile(fileName(res), JSON.stringify(res, null, 1)));
+  $('#done').addEventListener('click', () => confirmSheet('Tutup halaman hasil?', 'Pastikan file hasil sudah diunduh. Hasil tetap tersimpan di perangkat ini dan bisa diambil guru lewat Mode Guru.', 'Tutup', () => { store.del('cbt:hasil'); renderLogin(); }));
+}
+
+/* =====================================================================
+   MODE GURU
+   ===================================================================== */
+function askPin() {
+  openSheet(`<h3 id="sh-t">Mode guru</h3><p>Masukkan PIN guru.</p>
+    <div class="field"><label for="pin">PIN</label><input id="pin" type="password" inputmode="numeric" autocomplete="off"></div>
+    <div class="err" id="pin-err" role="alert"></div>
+    <div class="row"><button class="btn btn-line" id="c">Batal</button><button class="btn btn-primary" id="o">Masuk</button></div>`);
+  const ok = () => { if ($('#pin').value === String(CFG.pinGuru)) { closeSheet(); renderTeacher(); } else $('#pin-err').textContent = 'PIN salah.'; };
+  $('#pin').focus(); $('#pin').addEventListener('keydown', e => { if (e.key === 'Enter') ok(); });
+  $('#o').addEventListener('click', ok); $('#c').addEventListener('click', closeSheet);
+}
+
+let T = { list: [], kelas: 'Semua' };
+function keyOf(r) { return r.siswa.kelas + '|' + r.siswa.absen + '|' + r.siswa.nama.toLowerCase() + '|' + r.mulai; }
+function addResults(arr, source) {
+  let added = 0;
+  arr.forEach(r => {
+    if (!r || r.app !== 'cbt-perulangan-php' || !r.siswa || !r.jawaban) return;
+    const k = keyOf(r); if (T.list.some(x => keyOf(x) === k)) return;
+    const g = grade(r.jawaban);
+    T.list.push(Object.assign({}, r, { _g: g, _valid: sigOf(r) === r.kode, _src: source })); added++;
+  });
+  return added;
+}
+function renderTeacher() {
+  T.list = []; addResults(store.get('cbt:riwayat', []), 'perangkat ini');
+  $('#app').innerHTML = `
+  <header class="tbar"><div class="tbar-in">
+    <h1>Mode guru · Rekap nilai</h1><span class="sp"></span>
+    <button class="btn btn-line" id="t-exit">Keluar</button>
+  </div></header>
+  <main class="teach">
+    <div class="tools">
+      <label class="btn btn-primary" for="t-file" tabindex="0" id="t-file-lbl">Impor file hasil siswa</label>
+      <input type="file" id="t-file" accept=".json,application/json" multiple class="hide">
+      <select id="t-kelas" aria-label="Filter kelas"><option>Semua</option>${CFG.kelasList.map(k => `<option>${esc(k)}</option>`).join('')}</select>
+      <button class="btn btn-line" id="t-csv">Unduh rekap (CSV/Excel)</button>
+      <span style="flex:1"></span>
+      <button class="link" id="t-clear">Hapus hasil di perangkat ini</button>
+    </div>
+    <div class="stats" id="t-stats"></div>
+    <div class="tablewrap" id="t-table"></div>
+    <div class="two">
+      <section class="panel"><h2>Analisis butir soal</h2><p>Persentase siswa yang menjawab benar pada setiap soal. Soal dengan persentase rendah perlu dibahas ulang.</p><div class="items" id="t-items"></div></section>
+      <section class="panel"><h2>Pengaturan ujian saat ini</h2>
+        <dl class="kv"><dt>Token</dt><dd class="sigcode">${esc(CFG.token)}</dd><dt>Durasi</dt><dd>${CFG.durasiMenit} menit</dd><dt>KKM</dt><dd>${CFG.kkm}</dd><dt>Bobot</dt><dd>A ${CFG.bobot.A} · B ${CFG.bobot.B} · C ${CFG.bobot.C} poin per soal</dd><dt>Nilai terlihat siswa</dt><dd>${CFG.tampilkanNilai ? 'Ya' : 'Tidak'}</dd><dt>Acak soal / opsi</dt><dd>${CFG.acakSoal ? 'Ya' : 'Tidak'} / ${CFG.acakOpsi ? 'Ya' : 'Tidak'}</dd></dl>
+        <p>Untuk mengubahnya, buka file HTML ini dengan Notepad, lalu edit bagian <code>PENGATURAN UJIAN</code> di bagian atas file. Bagikan file yang sudah diubah ke siswa.</p>
+        <p>Nilai praktik koding dihitung ulang dari kode siswa: ${CFG.bobot.C} poin jika output dan syarat benar, ${Math.round(CFG.bobot.C * 0.4)} poin jika output benar tetapi syarat belum terpenuhi. Klik nama siswa untuk memeriksa kodenya.</p>
+      </section>
+    </div>
+  </main>`;
+  $('#t-exit').addEventListener('click', () => renderLogin());
+  $('#t-file-lbl').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('#t-file').click(); } });
+  $('#t-file').addEventListener('change', async e => {
+    const files = [...e.target.files]; let added = 0, bad = 0;
+    for (const f of files) { try { const j = JSON.parse(await f.text()); const n = addResults(Array.isArray(j) ? j : [j], f.name); if (!n) bad++; added += n; } catch (er) { bad++; } }
+    toast(`${added} hasil ditambahkan${bad ? `, ${bad} file dilewati (bukan file hasil atau duplikat)` : ''}.`, 3500);
+    e.target.value = ''; drawTeacher();
+  });
+  $('#t-kelas').addEventListener('change', e => { T.kelas = e.target.value; drawTeacher(); });
+  $('#t-csv').addEventListener('click', exportCSV);
+  $('#t-clear').addEventListener('click', () => confirmSheet('Hapus hasil di perangkat ini?', 'Semua hasil latihan soal yang tersimpan di browser perangkat ini akan dihapus. File hasil yang sudah diunduh siswa tidak terpengaruh.', 'Hapus', () => { store.del('cbt:riwayat'); renderTeacher(); }, true));
+  drawTeacher();
+}
+const filtered = () => T.list.filter(r => T.kelas === 'Semua' || r.siswa.kelas === T.kelas).sort((a, b) => a.siswa.kelas.localeCompare(b.siswa.kelas) || (+a.siswa.absen - +b.siswa.absen) || a.mulai - b.mulai);
+function drawTeacher() {
+  const L = filtered(); const vals = L.map(r => r._g.nilai);
+  const avg = vals.length ? (vals.reduce((a, b) => a + b, 0) / vals.length) : 0;
+  const tuntas = vals.filter(v => v >= CFG.kkm).length;
+  $('#t-stats').innerHTML = [['Peserta', L.length], ['Rata-rata', vals.length ? avg.toFixed(1).replace('.', ',') : '–'], ['Tertinggi', vals.length ? Math.max(...vals) : '–'], ['Terendah', vals.length ? Math.min(...vals) : '–'], ['Tuntas', vals.length ? `${tuntas}/${vals.length}` : '–']].map(([a, b]) => `<div class="stat"><span>${a}</span><b>${b}</b></div>`).join('');
+  if (!L.length) { $('#t-table').innerHTML = '<div class="empty-state">Belum ada hasil. Impor file hasil yang dikirim siswa, atau hasil dari latihan soal di perangkat ini akan muncul otomatis.</div>'; $('#t-items').innerHTML = '<p>Belum ada data.</p>'; return; }
+  const dup = {}; L.forEach(r => { const k = r.siswa.kelas + '|' + r.siswa.absen; dup[k] = (dup[k] || 0) + 1; });
+  $('#t-table').innerHTML = `<table class="rekap"><thead><tr><th>No</th><th>Nama</th><th>Kelas</th><th>Absen</th><th>A</th><th>B</th><th>C</th><th>Nilai</th><th>Status</th><th>Keluar halaman</th><th>Keterangan</th><th>Dikumpulkan</th></tr></thead><tbody>
+    ${L.map((r, i) => { const g = r._g; const notes = []; if (!r._valid) notes.push('<span class="tag no">File diubah</span>'); if (dup[r.siswa.kelas + '|' + r.siswa.absen] > 1) notes.push('<span class="tag w">Mengerjakan ulang</span>'); if (r.otomatis) notes.push('<span class="tag w">Waktu habis</span>'); if (r.pelanggaran.tempel) notes.push(`<span class="tag w">Tempel ${r.pelanggaran.tempel}×</span>`);
+      return `<tr class="click" data-k="${esc(keyOf(r))}" tabindex="0"><td>${i + 1}</td><td><b>${esc(r.siswa.nama)}</b></td><td>${esc(r.siswa.kelas)}</td><td class="num">${esc(r.siswa.absen)}</td><td class="num">${g.sc.A}</td><td class="num">${g.sc.B}</td><td class="num">${g.sc.C}</td><td class="num nilai">${g.nilai}</td><td><span class="tag ${g.nilai >= CFG.kkm ? 'ok' : 'no'}">${g.nilai >= CFG.kkm ? 'Tuntas' : 'Belum'}</span></td><td class="num">${r.pelanggaran.keluar ? `<span class="tag ${r.pelanggaran.keluar > 2 ? 'no' : 'w'}">${r.pelanggaran.keluar}×</span>` : '0'}</td><td>${notes.join(' ') || '–'}</td><td>${fmtDate(r.selesai)}</td></tr>`; }).join('')}
+  </tbody></table>`;
+  document.querySelectorAll('tr.click').forEach(tr => { const open = () => showDetail(T.list.find(x => keyOf(x) === tr.dataset.k)); tr.addEventListener('click', open); tr.addEventListener('keydown', e => { if (e.key === 'Enter') open(); }); });
+  // analisis butir
+  const items = Q.map(q => { const c = L.filter(r => r._g.det[q.id].status === 'benar').length; return { q, p: Math.round(c / L.length * 100) }; });
+  $('#t-items').innerHTML = items.map(({ q, p }) => `<div class="item"><b>${q.id}</b><div class="bar" title="${p}% benar"><i class="${p < 40 ? 'lowb' : p < 70 ? 'mid' : ''}" style="width:${p}%"></i></div><span>${p}%</span></div>`).join('');
+}
+function answerText(q, a) {
+  if (a === undefined || a === null || a === '') return '<span style="color:var(--muted)">(kosong)</span>';
+  if (q.type === 'pg') return `${q.html ? q.o[a] : esc(q.o[a])}`;
+  return esc(a);
+}
+function showDetail(r) {
+  const g = r._g;
+  const tagOf = s => s === 'benar' ? '<span class="tag ok">Benar</span>' : s === 'sebagian' ? '<span class="tag w">Sebagian</span>' : s === 'salah' ? '<span class="tag no">Salah</span>' : '<span class="tag w">Kosong</span>';
+  const rows = Q.map(q => {
+    const d = g.det[q.id], a = r.jawaban[q.id];
+    let body = '';
+    if (q.type === 'kode') {
+      body = a ? `<pre>${esc(a)}</pre>${d.extra ? `<div style="font-size:14px;color:var(--muted)">Output:</div><pre>${esc(d.extra.output || '(tidak ada output)')}${d.extra.error ? '\n' + esc(d.extra.error) : ''}</pre>${d.extra.reqMiss.length ? `<div style="font-size:14px;color:var(--bad)">Syarat belum terpenuhi: ${d.extra.reqMiss.map(k => REQ[k].label.toLowerCase()).join(', ')}</div>` : ''}` : ''}` : '<span style="color:var(--muted)">(kosong)</span>';
+    } else {
+      const kunci = q.type === 'pg' ? (q.html ? q.o[KEY[q.id]] : esc(q.o[KEY[q.id]])) : esc(KEY[q.id]);
+      body = `<div>Jawaban: <b>${answerText(q, a)}</b>${d.status !== 'benar' ? ` · Kunci: ${kunci}` : ''}</div>`;
+    }
+    return `<div class="d"><header><b>${q.id}</b>${tagOf(d.status)}<span style="color:var(--muted);font-size:14px">${d.pts}/${CFG.bobot[q.sec]} poin</span></header>${body}</div>`;
+  }).join('');
+  openSheet(`<h3 id="sh-t">${esc(r.siswa.nama)} · ${esc(r.siswa.kelas)} · Absen ${esc(r.siswa.absen)}</h3>
+    <p>Nilai <b>${g.nilai}</b> (A ${g.sc.A}/${g.max.A}, B ${g.sc.B}/${g.max.B}, C ${g.sc.C}/${g.max.C}) · Mulai ${fmtDate(r.mulai)} · Selesai ${fmtDate(r.selesai)} · Keluar halaman ${r.pelanggaran.keluar}× · Kode ${esc(r.kode)} ${r._valid ? '<span class="tag ok">valid</span>' : '<span class="tag no">file diubah</span>'}</p>
+    <p style="font-size:14px;color:var(--muted)">Nomor soal di bawah mengikuti bank soal (A1–A20, B1–B10, C1–C6), bukan urutan acak yang dilihat siswa.</p>
+    <div class="det">${rows}</div>
+    <div class="row"><button class="btn btn-primary" id="c">Tutup</button></div>`, true);
+  $('#c').addEventListener('click', closeSheet);
+}
+function exportCSV() {
+  const L = filtered(); if (!L.length) { toast('Belum ada data untuk diunduh.'); return; }
+  const q = s => '"' + String(s).replace(/"/g, '""') + '"';
+  const head = ['No', 'Nama', 'Kelas', 'Absen', 'Skor A', 'Skor B', 'Skor C', 'Nilai', 'Status', 'Keluar halaman', 'Tempel', 'Waktu habis', 'File valid', 'Mulai', 'Selesai', ...Q.map(x => x.id)];
+  const lines = ['sep=;', head.map(q).join(';')];
+  L.forEach((r, i) => { const g = r._g; lines.push([i + 1, r.siswa.nama, r.siswa.kelas, r.siswa.absen, g.sc.A, g.sc.B, g.sc.C, g.nilai, g.nilai >= CFG.kkm ? 'Tuntas' : 'Belum tuntas', r.pelanggaran.keluar, r.pelanggaran.tempel, r.otomatis ? 'Ya' : 'Tidak', r._valid ? 'Ya' : 'Tidak', fmtDate(r.mulai), fmtDate(r.selesai), ...Q.map(x => g.det[x.id].pts)].map(q).join(';')); });
+  saveFile(`Rekap_Nilai_Perulangan_${T.kelas.replace(/\s+/g, '-')}.csv`, lines.join('\r\n'));
+}
+
+/* ---------- dialog ---------- */
+let lastFocus = null;
+function openSheet(html, wide) { lastFocus = document.activeElement; $('#sheet-card').className = 'card' + (wide ? ' wide' : ''); $('#sheet-card').innerHTML = html; $('#sheet').classList.remove('hide'); $('#sheet').setAttribute('aria-labelledby', 'sh-t'); const card = $('#sheet-card'); card.scrollTop = 0; if (wide) { card.setAttribute('tabindex', '-1'); card.focus(); return; } const b = card.querySelector('button'); if (b && !$('#pin')) b.focus(); }
+function closeSheet() { $('#sheet').classList.add('hide'); if (lastFocus && lastFocus.focus) lastFocus.focus(); }
+$('#sheet').addEventListener('click', e => { if (e.target.id === 'sheet') closeSheet(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#sheet').classList.contains('hide')) closeSheet(); });
+function confirmSheet(title, body, okLabel, onOk, danger) {
+  openSheet(`<h3 id="sh-t">${title}</h3><p>${body}</p><div class="row"><button class="btn btn-line" id="c">Batal</button><button class="btn ${danger ? 'btn-danger' : 'btn-primary'}" id="o">${okLabel}</button></div>`);
+  $('#c').addEventListener('click', closeSheet); $('#o').addEventListener('click', () => { closeSheet(); onOk(); });
+}
+window.addEventListener('beforeunload', () => { if (S && !S.done) saveCurrent(); });
+
+renderLogin();
+})();
+</script>
+</body>
+</html>
